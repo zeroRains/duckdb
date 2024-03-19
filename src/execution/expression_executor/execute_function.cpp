@@ -63,7 +63,7 @@ void ExpressionExecutor::Execute(const BoundFunctionExpression &expr, Expression
 	if (!state->types.empty()) {
 		for (idx_t i = 0; i < expr.children.size(); i++) {
 			D_ASSERT(state->types[i] == expr.children[i]->return_type);
-			Execute(*expr.children[i], state->child_states[i].get(), sel, count, arguments.data[i]);
+			Execute(*expr.children[i], state->child_states[i].get(), sel, count, arguments.data[i]); // 参数引用解析
 #ifdef DEBUG
 			if (expr.children[i]->return_type.id() == LogicalTypeId::VARCHAR) {
 				arguments.data[i].UTFVerify(count);
@@ -73,13 +73,56 @@ void ExpressionExecutor::Execute(const BoundFunctionExpression &expr, Expression
 		arguments.Verify();
 	}
 	arguments.SetCardinality(count);
-
-	state->profiler.BeginSample();
 	D_ASSERT(expr.function.function);
-	expr.function.function(arguments, *state, result);
-	state->profiler.EndSample(count);
 
-	VerifyNullHandling(expr, arguments, result);
+	// differetiate UDF and common function like +, -, * and /
+	if (expr.function.null_handling == FunctionNullHandling::SPECIAL_HANDLING) {
+		idx_t dibs = 300;
+		if (!save_chunk.size()) {
+			save_chunk.Initialize(*context.get(), arguments.GetTypes());
+			save_chunk.Reset();
+			current_chunk.Initialize(*context.get(), arguments.GetTypes());
+		}
+		// merge the batch data_chunk in save_chunk
+		save_chunk.Append(arguments, true);
+		// splite save_chunk to fit the desirable batch size
+		nums = save_chunk.size() - index;
+		bool is_finall_data_chunk = context.get()->is_final_data_chunk;
+		if (is_finall_data_chunk || nums >= dibs) {
+			state->profiler.BeginSample();
+			if (is_finall_data_chunk) {
+				nums = save_chunk.size() - index;
+				idx_t result_cnt = 0;
+				while (index < save_chunk.size()) {
+					idx_t leave = save_chunk.size() - index;
+					idx_t tmp_num = leave > dibs ? dibs : leave;
+					SelectionVector tmp_sel(index, tmp_num);
+					current_chunk.Slice(save_chunk, tmp_sel, tmp_num);
+					index += tmp_num;
+					Vector tmp_res(result.GetType(), tmp_num);
+					expr.function.function(current_chunk, *state, tmp_res);
+					idx_t now_cnt = result_cnt;
+					result_cnt += tmp_num;
+					result.Resize(now_cnt, result_cnt);
+					VectorOperations::Copy(tmp_res, result, tmp_num, 0, now_cnt);
+				}
+			} else {
+				nums = dibs;
+				SelectionVector tmp_sel(index, nums);
+				current_chunk.Slice(save_chunk, tmp_sel, nums);
+				index += nums;
+				expr.function.function(current_chunk, *state, result);
+			}
+			state->profiler.EndSample(current_chunk.size());
+			VerifyNullHandling(expr, current_chunk, result);
+		}
+	} else {
+		state->profiler.BeginSample();
+		expr.function.function(arguments, *state, result);
+		state->profiler.EndSample(count);
+		VerifyNullHandling(expr, arguments, result);
+	}
+
 	D_ASSERT(result.GetType() == expr.return_type);
 }
 

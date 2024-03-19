@@ -35,6 +35,10 @@ public:
 	//! The data chunk of the current physical operator, used to resolve
 	//! column references and determines the output cardinality
 	DataChunk *chunk = nullptr;
+	DataChunk save_chunk;
+	DataChunk current_chunk;
+	idx_t index = 0;
+	idx_t nums = 0;
 
 public:
 	bool HasContext();

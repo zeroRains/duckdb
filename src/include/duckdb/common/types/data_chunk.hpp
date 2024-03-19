@@ -57,7 +57,8 @@ public:
 		return data.size();
 	}
 	inline void SetCardinality(idx_t count_p) {
-		D_ASSERT(count_p <= capacity);
+		if (capacity < count_p)
+			capacity = count_p;
 		this->count = count_p;
 	}
 	inline void SetCardinality(const DataChunk &other) {
@@ -68,6 +69,9 @@ public:
 	}
 	inline void SetCapacity(const DataChunk &other) {
 		SetCapacity(other.capacity);
+	}
+	inline idx_t GetCapacity() const {
+		return capacity;
 	}
 
 	DUCKDB_API Value GetValue(idx_t col_idx, idx_t index) const;

@@ -270,6 +270,9 @@ OperatorResultType PipelineExecutor::ExecutePushInternal(DataChunk &input, idx_t
 		// Note: if input is the final_chunk, we don't do any executing, the chunk just needs to be sinked
 		if (&input != &final_chunk) {
 			final_chunk.Reset();
+			if(input.size() != input.GetCapacity()){
+				context.client.is_final_data_chunk = true;
+			}
 			result = Execute(input, final_chunk, initial_idx);
 			if (result == OperatorResultType::FINISHED) {
 				return OperatorResultType::FINISHED;
