@@ -4,7 +4,10 @@ project(example-c++)
 set(CMAKE_CXX_STANDARD 11)
 
 include_directories(../../src/include)
+# modify
 link_directories(../../build/src)
+# origin
+# link_directories(../../origin_build/src)
 
 add_executable(example main.cpp)
 target_link_libraries(example duckdb)
