@@ -60,10 +60,10 @@ void ExpressionExecutor::Execute(const BoundFunctionExpression &expr, Expression
                                  const SelectionVector *sel, idx_t count, Vector &result) {
 	state->intermediate_chunk.Reset();
 	auto &arguments = state->intermediate_chunk;
-	if (!state->types.empty()) {
+	if (!state->types.empty() && count > 0) {
 		for (idx_t i = 0; i < expr.children.size(); i++) {
 			D_ASSERT(state->types[i] == expr.children[i]->return_type);
-			Execute(*expr.children[i], state->child_states[i].get(), sel, count, arguments.data[i]); // 参数引用解析
+			Execute(*expr.children[i], state->child_states[i].get(), sel, count, arguments.data[i]);
 #ifdef DEBUG
 			if (expr.children[i]->return_type.id() == LogicalTypeId::VARCHAR) {
 				arguments.data[i].UTFVerify(count);
@@ -82,39 +82,27 @@ void ExpressionExecutor::Execute(const BoundFunctionExpression &expr, Expression
 			save_chunk.Initialize(*context.get(), arguments.GetTypes());
 			save_chunk.Reset();
 			current_chunk.Initialize(*context.get(), arguments.GetTypes());
+			context.get()->udf_count = std::max(context.get()->udf_count + 1, 1);
 		}
 		// merge the batch data_chunk in save_chunk
-		save_chunk.Append(arguments, true);
+		if (count > 0) {
+			save_chunk.Append(arguments, true);
+		}
 		// splite save_chunk to fit the desirable batch size
 		nums = save_chunk.size() - index;
-		bool is_finall_data_chunk = context.get()->is_final_data_chunk;
-		if (is_finall_data_chunk || nums >= dibs) {
+		if (nums >= dibs || count == 0) {
 			state->profiler.BeginSample();
-			if (is_finall_data_chunk) {
-				nums = save_chunk.size() - index;
-				idx_t result_cnt = 0;
-				while (index < save_chunk.size()) {
-					idx_t leave = save_chunk.size() - index;
-					idx_t tmp_num = leave > dibs ? dibs : leave;
-					SelectionVector tmp_sel(index, tmp_num);
-					current_chunk.Slice(save_chunk, tmp_sel, tmp_num);
-					index += tmp_num;
-					Vector tmp_res(result.GetType(), tmp_num);
-					expr.function.function(current_chunk, *state, tmp_res);
-					idx_t now_cnt = result_cnt;
-					result_cnt += tmp_num;
-					result.Resize(now_cnt, result_cnt);
-					VectorOperations::Copy(tmp_res, result, tmp_num, 0, now_cnt);
-				}
-			} else {
-				nums = dibs;
-				SelectionVector tmp_sel(index, nums);
-				current_chunk.Slice(save_chunk, tmp_sel, nums);
-				index += nums;
-				expr.function.function(current_chunk, *state, result);
-			}
+			nums = dibs > nums && count == 0 ? nums : dibs;
+			SelectionVector tmp_sel(index, nums);
+			current_chunk.Slice(save_chunk, tmp_sel, nums);
+			index += nums;
+			expr.function.function(current_chunk, *state, result);
 			state->profiler.EndSample(current_chunk.size());
 			VerifyNullHandling(expr, current_chunk, result);
+			// No data in save_chunk
+			if (count == 0 && index == save_chunk.size()) {
+				context.get()->udf_count -= 1;
+			}
 		}
 	} else {
 		state->profiler.BeginSample();

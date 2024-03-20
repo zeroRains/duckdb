@@ -85,8 +85,8 @@ public:
 	unique_ptr<ClientData> client_data;
 	//! Data for the currently running transaction
 	TransactionContext transaction;
-	//! Use for desirable inference batch size
-	bool is_final_data_chunk = false;
+	//! Record the count of UDF save_chunk
+	int udf_count = -1;
 
 public:
 	MetaTransaction &ActiveTransaction() {

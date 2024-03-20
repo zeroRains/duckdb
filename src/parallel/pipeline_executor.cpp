@@ -1,10 +1,11 @@
 #include "duckdb/parallel/pipeline_executor.hpp"
-#include "duckdb/main/client_context.hpp"
+
 #include "duckdb/common/limits.hpp"
+#include "duckdb/main/client_context.hpp"
 
 #ifdef DUCKDB_DEBUG_ASYNC_SINK_SOURCE
-#include <thread>
 #include <chrono>
+#include <thread>
 #endif
 
 namespace duckdb {
@@ -181,13 +182,20 @@ PipelineExecuteResult PipelineExecutor::Execute(idx_t max_chunks) {
 			D_ASSERT(source_chunk.size() > 0);
 			result = ExecutePushInternal(source_chunk);
 		} else if (exhausted_source && !next_batch_blocked && !done_flushing) {
-			// The source was exhausted, try flushing all operators
-			auto flush_completed = TryFlushCachingOperators();
-			if (flush_completed) {
-				done_flushing = true;
-				break;
+			// We need to handle the save_chunk in the UDF though there is no data in scan operator
+			if (context.client.udf_count > 0) {
+				source_chunk.Reset();
+				ExecutePushInternal(source_chunk);
+				continue;
 			} else {
-				return PipelineExecuteResult::INTERRUPTED;
+				// The source was exhausted, try flushing all operators
+				auto flush_completed = TryFlushCachingOperators();
+				if (flush_completed) {
+					done_flushing = true;
+					break;
+				} else {
+					return PipelineExecuteResult::INTERRUPTED;
+				}
 			}
 		} else if (!exhausted_source || next_batch_blocked) {
 			SourceResultType source_result;
@@ -258,7 +266,7 @@ bool PipelineExecutor::IsFinished() {
 
 OperatorResultType PipelineExecutor::ExecutePushInternal(DataChunk &input, idx_t initial_idx) {
 	D_ASSERT(pipeline.sink);
-	if (input.size() == 0) { // LCOV_EXCL_START
+	if (input.size() == 0 && context.client.udf_count <= 0) { // LCOV_EXCL_START
 		return OperatorResultType::NEED_MORE_INPUT;
 	} // LCOV_EXCL_STOP
 
@@ -270,9 +278,6 @@ OperatorResultType PipelineExecutor::ExecutePushInternal(DataChunk &input, idx_t
 		// Note: if input is the final_chunk, we don't do any executing, the chunk just needs to be sinked
 		if (&input != &final_chunk) {
 			final_chunk.Reset();
-			if(input.size() != input.GetCapacity()){
-				context.client.is_final_data_chunk = true;
-			}
 			result = Execute(input, final_chunk, initial_idx);
 			if (result == OperatorResultType::FINISHED) {
 				return OperatorResultType::FINISHED;
@@ -431,7 +436,7 @@ void PipelineExecutor::GoToSource(idx_t &current_idx, idx_t initial_idx) {
 }
 
 OperatorResultType PipelineExecutor::Execute(DataChunk &input, DataChunk &result, idx_t initial_idx) {
-	if (input.size() == 0) { // LCOV_EXCL_START
+	if (input.size() == 0 && context.client.udf_count <= 0) { // LCOV_EXCL_START
 		return OperatorResultType::NEED_MORE_INPUT;
 	} // LCOV_EXCL_STOP
 	D_ASSERT(!pipeline.operators.empty());
@@ -483,7 +488,7 @@ OperatorResultType PipelineExecutor::Execute(DataChunk &input, DataChunk &result
 			current_chunk.Verify();
 		}
 
-		if (current_chunk.size() == 0) {
+		if (current_chunk.size() == 0 && context.client.udf_count <= 0) {
 			// no output from this operator!
 			if (current_idx == initial_idx) {
 				// if we got no output from the scan, we are done

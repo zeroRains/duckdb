@@ -37,8 +37,12 @@ int main() {
 	Connection con(db);
 	con.Query("CREATE TABLE data (i INTEGER, age INTEGER)");
 	create_data(con);
+	printf("Finish create!\n");
 	con.CreateVectorizedFunction<int, int, int>("udf_vectorized_int", &udf_tmp<int, 2>);
+	clock_t start_time=clock();
 	con.Query("SELECT udf_vectorized_int(i, age) as res FROM data WHERE i%2==0")->Print();
+	clock_t end_time=clock();
+	printf("finished execute %lf s!\n",(double)(end_time - start_time) / CLOCKS_PER_SEC);
 	// con.Query("SELECT i FROM data WHERE i%2==0")->Print();
 	return 0;
 }

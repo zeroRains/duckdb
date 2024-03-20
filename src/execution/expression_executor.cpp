@@ -183,9 +183,10 @@ void ExpressionExecutor::Execute(const Expression &expr, ExpressionState *state,
 	}
 #endif
 
-	if (count == 0) {
+	if (count == 0 && context.get()->udf_count <= 0) {
 		return;
 	}
+	bool use_udf = false;
 	if (result.GetType().id() != expr.return_type.id()) {
 		throw InternalException(
 		    "ExpressionExecutor::Execute called with a result vector of type %s that does not match expression type %s",
@@ -215,6 +216,7 @@ void ExpressionExecutor::Execute(const Expression &expr, ExpressionState *state,
 		break;
 	case ExpressionClass::BOUND_FUNCTION:
 		Execute(expr.Cast<BoundFunctionExpression>(), state, sel, count, result);
+		use_udf = expr.Cast<BoundFunctionExpression>().function.null_handling == FunctionNullHandling::SPECIAL_HANDLING;
 		break;
 	case ExpressionClass::BOUND_OPERATOR:
 		Execute(expr.Cast<BoundOperatorExpression>(), state, sel, count, result);
@@ -225,6 +227,8 @@ void ExpressionExecutor::Execute(const Expression &expr, ExpressionState *state,
 	default:
 		throw InternalException("Attempting to execute expression of unknown type!");
 	}
+	if (use_udf)
+		count = nums;
 	Verify(expr, result, count);
 }
 
