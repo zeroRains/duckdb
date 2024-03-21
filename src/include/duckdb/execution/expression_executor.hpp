@@ -66,6 +66,8 @@ public:
 	//! Execute the ExpressionExecutor and generate a selection vector from all true values in the result; this should
 	//! only be used with a single boolean expression
 	DUCKDB_API idx_t SelectExpression(DataChunk &input, SelectionVector &sel);
+	//! Handle Expression result in DataChunk
+	DUCKDB_API idx_t SelectExpression(DataChunk &input, SelectionVector &sel, DataChunk &result);
 
 	//! Execute the expression with index `expr_idx` and store the result in the result vector
 	DUCKDB_API void ExecuteExpression(idx_t expr_idx, Vector &result);

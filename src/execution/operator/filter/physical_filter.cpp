@@ -42,13 +42,7 @@ unique_ptr<OperatorState> PhysicalFilter::GetOperatorState(ExecutionContext &con
 OperatorResultType PhysicalFilter::ExecuteInternal(ExecutionContext &context, DataChunk &input, DataChunk &chunk,
                                                    GlobalOperatorState &gstate, OperatorState &state_p) const {
 	auto &state = state_p.Cast<FilterState>();
-	idx_t result_count = state.executor.SelectExpression(input, state.sel);
-	if (result_count == input.size()) {
-		// nothing was filtered: skip adding any selection vectors
-		chunk.Reference(input);
-	} else {
-		chunk.Slice(input, state.sel, result_count);
-	}
+	state.executor.SelectExpression(input, state.sel, chunk);
 	return OperatorResultType::NEED_MORE_INPUT;
 }
 

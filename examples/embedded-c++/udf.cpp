@@ -15,7 +15,7 @@ static void udf_tmp(DataChunk &input, ExpressionState &state, Vector &result) {
 	auto tmp_data2 = ConstantVector::GetData<TYPE>(input.data[1]);
 	memset(result_data, std::numeric_limits<TYPE>::min(), input.size() * sizeof(TYPE));
 	for (idx_t i = 0; i < input.size(); i++) {
-		result_data[i] = 1 * tmp_data1[i]/2 + 0 * tmp_data2[i];
+		result_data[i] = 1 * tmp_data1[i] + 0 * tmp_data2[i];
 	}
 }
 

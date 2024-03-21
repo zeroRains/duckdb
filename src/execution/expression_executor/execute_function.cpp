@@ -60,7 +60,7 @@ void ExpressionExecutor::Execute(const BoundFunctionExpression &expr, Expression
                                  const SelectionVector *sel, idx_t count, Vector &result) {
 	state->intermediate_chunk.Reset();
 	auto &arguments = state->intermediate_chunk;
-	if (!state->types.empty() && count > 0) {
+	if (!state->types.empty()) {
 		for (idx_t i = 0; i < expr.children.size(); i++) {
 			D_ASSERT(state->types[i] == expr.children[i]->return_type);
 			Execute(*expr.children[i], state->child_states[i].get(), sel, count, arguments.data[i]);
@@ -88,7 +88,7 @@ void ExpressionExecutor::Execute(const BoundFunctionExpression &expr, Expression
 		if (count > 0) {
 			save_chunk.Append(arguments, true);
 		}
-		// splite save_chunk to fit the desirable batch size
+		// splite save_chunk to fit the desirable inference batch size
 		nums = save_chunk.size() - index;
 		if (nums >= dibs || count == 0) {
 			state->profiler.BeginSample();

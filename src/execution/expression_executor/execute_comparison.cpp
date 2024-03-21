@@ -285,7 +285,9 @@ idx_t ExpressionExecutor::Select(const BoundComparisonExpression &expr, Expressi
 
 	Execute(*expr.left, state->child_states[0].get(), sel, count, left);
 	Execute(*expr.right, state->child_states[1].get(), sel, count, right);
-
+	if(current_chunk.size() > 0){
+		count = current_chunk.size();
+	}
 	switch (expr.type) {
 	case ExpressionType::COMPARE_EQUAL:
 		return VectorOperations::Equals(left, right, sel, count, true_sel, false_sel);
