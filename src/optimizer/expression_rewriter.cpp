@@ -13,7 +13,7 @@ unique_ptr<Expression> ExpressionRewriter::ApplyRules(LogicalOperator &op, const
                                                       unique_ptr<Expression> expr, bool &changes_made, bool is_root) {
 	for (auto &rule : rules) {
 		vector<reference<Expression>> bindings;
-		if (rule.get().root->Match(*expr, bindings)) {
+		if (rule.get().root->Match(*expr, bindings)) { // 这里有检测BOUNDARY_FUNCTION的rule
 			// the rule matches! try to apply it
 			bool rule_made_change = false;
 			auto result = rule.get().Apply(op, bindings, rule_made_change, is_root);
