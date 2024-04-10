@@ -107,9 +107,9 @@ idx_t ExpressionExecutor::SelectExpression(DataChunk &input, SelectionVector &se
 	int size = current_chunk.size() > 0 ? current_chunk.size() : chunk ? chunk->size() : 0;
 	states[0]->profiler.EndSample(size);
 	if (current_chunk.size() > 0) { // case with UDF
-		if(selected_tuples == current_chunk.size()){
+		if (selected_tuples == current_chunk.size()) {
 			result.Reference(current_chunk);
-		}else{
+		} else {
 			result.Slice(current_chunk, sel, selected_tuples);
 		}
 	} else { // case without UDF
@@ -251,8 +251,9 @@ void ExpressionExecutor::Execute(const Expression &expr, ExpressionState *state,
 	default:
 		throw InternalException("Attempting to execute expression of unknown type!");
 	}
-	if (use_udf)
+	if (use_udf) {
 		count = nums;
+	}
 	Verify(expr, result, count);
 }
 

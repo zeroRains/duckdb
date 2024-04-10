@@ -77,7 +77,7 @@ void ExpressionExecutor::Execute(const BoundFunctionExpression &expr, Expression
 
 	// differetiate UDF and common function like +, -, * and /
 	if (expr.function.null_handling == FunctionNullHandling::SPECIAL_HANDLING) {
-		idx_t dibs = 300;
+		idx_t dibs = 4096;
 		if (!save_chunk.size()) {
 			save_chunk.Initialize(*context.get(), arguments.GetTypes());
 			save_chunk.Reset();
@@ -93,6 +93,9 @@ void ExpressionExecutor::Execute(const BoundFunctionExpression &expr, Expression
 		if (nums >= dibs || count == 0) {
 			state->profiler.BeginSample();
 			nums = dibs > nums && count == 0 ? nums : dibs;
+			if(nums >  current_chunk.GetCapacity()){
+				current_chunk.Resize(nums);
+			}
 			SelectionVector tmp_sel(index, nums);
 			current_chunk.Slice(save_chunk, tmp_sel, nums);
 			index += nums;
@@ -103,6 +106,9 @@ void ExpressionExecutor::Execute(const BoundFunctionExpression &expr, Expression
 			if (count == 0 && index == save_chunk.size()) {
 				context.get()->udf_count -= 1;
 			}
+		}
+		else{
+			nums = 0;
 		}
 	} else {
 		state->profiler.BeginSample();

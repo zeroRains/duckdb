@@ -111,6 +111,9 @@ public:
 	//! Destroy all data and columns owned by this DataChunk
 	DUCKDB_API void Destroy();
 
+	//! Destroy all data and columns owned by this DataChunk
+	DUCKDB_API void Resize(idx_t count);
+
 	//! Copies the data from this vector to another vector.
 	DUCKDB_API void Copy(DataChunk &other, idx_t offset = 0) const;
 	DUCKDB_API void Copy(DataChunk &other, const SelectionVector &sel, const idx_t source_count,

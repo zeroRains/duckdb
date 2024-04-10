@@ -30,14 +30,16 @@ void create_data(Connection con, int n = 10000) {
 		ss << ")";
 	}
 	con.Query(ss.str());
+	printf("Finish create!\n");
 }
 
 int main() {
 	DuckDB db(nullptr);
 	Connection con(db);
+	con.Query("SET threads = 1");
 	con.Query("CREATE TABLE data (i INTEGER, age INTEGER)");
 	create_data(con);
-	printf("Finish create!\n");
+	// con.Query("SELECT * FROM data LIMIT 10")->Print();
 	con.CreateVectorizedFunction<int, int, int>("udf_vectorized_int", &udf_tmp<int, 2>);
 	clock_t start_time=clock();
 	con.Query("SELECT udf_vectorized_int(i, age) as res FROM data WHERE i%2==0")->Print();
