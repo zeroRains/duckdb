@@ -77,33 +77,41 @@ void ExpressionExecutor::Execute(const BoundFunctionExpression &expr, Expression
 
 	// differetiate UDF and common function like +, -, * and /
 	if (expr.function.null_handling == FunctionNullHandling::SPECIAL_HANDLING) {
-		idx_t dibs = 4096;
-		if (!save_chunk.size()) {
-			save_chunk.Initialize(*context.get(), arguments.GetTypes());
-			save_chunk.Reset();
+		const idx_t DIBS = 2400;
+		// init current_chunk
+		if (!is_init_current_chunk) {
 			current_chunk.Initialize(*context.get(), arguments.GetTypes());
 			context.get()->udf_count = std::max(context.get()->udf_count + 1, 1);
+			is_init_current_chunk = true;
 		}
 		// merge the batch data_chunk in save_chunk
-		if (count > 0) {
-			save_chunk.Append(arguments, true);
+		if (count > 0 && current_chunk.size() < DIBS) {
+			if(current_chunk.size() + arguments.size() > DIBS){
+				chunk_offset = DIBS - current_chunk.size();
+				SelectionVector tmp(0, chunk_offset);
+				current_chunk.Append(arguments, true, &tmp, chunk_offset);
+			}else{
+				current_chunk.Append(arguments, true);
+			}
 		}
 		// splite save_chunk to fit the desirable inference batch size
-		nums = save_chunk.size() - index;
-		if (nums >= dibs || count == 0) {
+		if (current_chunk.size() == DIBS || count == 0) {
+			nums = current_chunk.size();
+
 			state->profiler.BeginSample();
-			nums = dibs > nums && count == 0 ? nums : dibs;
-			if(nums >  current_chunk.GetCapacity()){
-				current_chunk.Resize(nums);
-			}
-			SelectionVector tmp_sel(index, nums);
-			current_chunk.Slice(save_chunk, tmp_sel, nums);
-			index += nums;
 			expr.function.function(current_chunk, *state, result);
 			state->profiler.EndSample(current_chunk.size());
+			current_chunk.Reset();
+
+			if(chunk_offset != 0){
+				idx_t current_count = arguments.size() - chunk_offset;
+				SelectionVector tmp(chunk_offset, current_count);
+				current_chunk.Append(arguments, true, &tmp, current_count);
+				chunk_offset = 0;
+			}
 			VerifyNullHandling(expr, current_chunk, result);
-			// No data in save_chunk
-			if (count == 0 && index == save_chunk.size()) {
+			// No data in current_chunk
+			if (count == 0 && current_chunk.size() == 0) {
 				context.get()->udf_count -= 1;
 			}
 		}
