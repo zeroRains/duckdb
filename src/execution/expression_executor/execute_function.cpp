@@ -86,11 +86,11 @@ void ExpressionExecutor::Execute(const BoundFunctionExpression &expr, Expression
 		}
 		// merge the batch data_chunk in save_chunk
 		if (count > 0 && current_chunk.size() < DIBS) {
-			if(current_chunk.size() + arguments.size() > DIBS){
+			if (current_chunk.size() + arguments.size() > DIBS) {
 				chunk_offset = DIBS - current_chunk.size();
 				SelectionVector tmp(0, chunk_offset);
 				current_chunk.Append(arguments, true, &tmp, chunk_offset);
-			}else{
+			} else {
 				current_chunk.Append(arguments, true);
 			}
 		}
@@ -100,22 +100,37 @@ void ExpressionExecutor::Execute(const BoundFunctionExpression &expr, Expression
 
 			state->profiler.BeginSample();
 			expr.function.function(current_chunk, *state, result);
-			state->profiler.EndSample(current_chunk.size());
-			current_chunk.Reset();
 
-			if(chunk_offset != 0){
-				idx_t current_count = arguments.size() - chunk_offset;
-				SelectionVector tmp(chunk_offset, current_count);
-				current_chunk.Append(arguments, true, &tmp, current_count);
-				chunk_offset = 0;
+			current_chunk.Reset();
+			idx_t left = arguments.size() - chunk_offset;
+
+			while (left) {
+				if (left >= DIBS) { 
+					SelectionVector tmp(chunk_offset, DIBS);
+					current_chunk.Append(arguments, true, &tmp, DIBS);
+					Vector tmp_res(result.GetType(), DIBS);
+					expr.function.function(current_chunk, *state, tmp_res);
+					result.Resize(nums, nums + DIBS);
+					VectorOperations::Copy(tmp_res, result, DIBS, 0, nums);
+					nums += DIBS;
+					left -= DIBS;
+					chunk_offset = left ? chunk_offset + DIBS : 0;
+					current_chunk.Reset();
+				} else { 
+					idx_t current_count = arguments.size() - chunk_offset;
+					SelectionVector tmp(chunk_offset, current_count);
+					current_chunk.Append(arguments, true, &tmp, current_count);
+					chunk_offset = 0;
+					left = 0;
+				}
 			}
+			state->profiler.EndSample(nums);
 			VerifyNullHandling(expr, current_chunk, result);
 			// No data in current_chunk
 			if (count == 0 && current_chunk.size() == 0) {
 				context.get()->udf_count -= 1;
 			}
-		}
-		else{
+		} else {
 			nums = 0;
 		}
 	} else {

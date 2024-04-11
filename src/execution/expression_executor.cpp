@@ -99,29 +99,6 @@ idx_t ExpressionExecutor::SelectExpression(DataChunk &input, SelectionVector &se
 	return selected_tuples;
 }
 
-idx_t ExpressionExecutor::SelectExpression(DataChunk &input, SelectionVector &sel, DataChunk &result) {
-	D_ASSERT(expressions.size() == 1);
-	SetChunk(&input);
-	states[0]->profiler.BeginSample();
-	idx_t selected_tuples = Select(*expressions[0], states[0]->root_state.get(), nullptr, input.size(), &sel, nullptr);
-	int size = current_chunk.size() > 0 ? current_chunk.size() : chunk ? chunk->size() : 0;
-	states[0]->profiler.EndSample(size);
-	if (current_chunk.size() > 0) { // case with UDF
-		if (selected_tuples == current_chunk.size()) {
-			result.Reference(current_chunk);
-		} else {
-			result.Slice(current_chunk, sel, selected_tuples);
-		}
-	} else { // case without UDF
-		if (selected_tuples == input.size()) {
-			// nothing was filtered: skip adding any selection vectors
-			result.Reference(input);
-		} else {
-			result.Slice(input, sel, selected_tuples);
-		}
-	}
-	return selected_tuples;
-}
 
 void ExpressionExecutor::ExecuteExpression(Vector &result) {
 	D_ASSERT(expressions.size() == 1);

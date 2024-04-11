@@ -1,7 +1,8 @@
 #include "duckdb/execution/operator/filter/physical_filter.hpp"
+
 #include "duckdb/execution/expression_executor.hpp"
-#include "duckdb/planner/expression/bound_conjunction_expression.hpp"
 #include "duckdb/parallel/thread_context.hpp"
+#include "duckdb/planner/expression/bound_conjunction_expression.hpp"
 namespace duckdb {
 
 PhysicalFilter::PhysicalFilter(vector<LogicalType> types, vector<unique_ptr<Expression>> select_list,
@@ -42,7 +43,13 @@ unique_ptr<OperatorState> PhysicalFilter::GetOperatorState(ExecutionContext &con
 OperatorResultType PhysicalFilter::ExecuteInternal(ExecutionContext &context, DataChunk &input, DataChunk &chunk,
                                                    GlobalOperatorState &gstate, OperatorState &state_p) const {
 	auto &state = state_p.Cast<FilterState>();
-	state.executor.SelectExpression(input, state.sel, chunk);
+	idx_t result_count = state.executor.SelectExpression(input, state.sel);
+	if (result_count == input.size()) {
+		// nothing was filtered: skip adding any selection vectors
+		chunk.Reference(input);
+	} else {
+		chunk.Slice(input, state.sel, result_count);
+	}
 	return OperatorResultType::NEED_MORE_INPUT;
 }
 
