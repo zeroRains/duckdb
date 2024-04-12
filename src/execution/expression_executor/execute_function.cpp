@@ -73,13 +73,73 @@ void ExpressionExecutor::Execute(const BoundFunctionExpression &expr, Expression
 		arguments.Verify();
 	}
 	arguments.SetCardinality(count);
-
-	state->profiler.BeginSample();
 	D_ASSERT(expr.function.function);
-	expr.function.function(arguments, *state, result);
-	state->profiler.EndSample(count);
 
-	VerifyNullHandling(expr, arguments, result);
+	// differetiate UDF and common function like +, -, * and /
+	if (expr.function.null_handling == FunctionNullHandling::SPECIAL_HANDLING) {
+		const idx_t DIBS = 2400;
+		// init current_chunk
+		if (!is_init_current_chunk) {
+			current_chunk.Initialize(*context.get(), arguments.GetTypes());
+			context.get()->udf_count = std::max(context.get()->udf_count + 1, 1);
+			is_init_current_chunk = true;
+		}
+		// merge the batch data_chunk in save_chunk
+		if (count > 0 && current_chunk.size() < DIBS) {
+			if (current_chunk.size() + arguments.size() > DIBS) {
+				chunk_offset = DIBS - current_chunk.size();
+				SelectionVector tmp(0, chunk_offset);
+				current_chunk.Append(arguments, true, &tmp, chunk_offset);
+			} else {
+				current_chunk.Append(arguments, true);
+			}
+		}
+		// splite save_chunk to fit the desirable inference batch size
+		if (current_chunk.size() == DIBS || count == 0) {
+			nums = current_chunk.size();
+
+			state->profiler.BeginSample();
+			expr.function.function(current_chunk, *state, result);
+
+			current_chunk.Reset();
+			idx_t left = arguments.size() - chunk_offset;
+
+			while (left) {
+				if (left >= DIBS) { 
+					SelectionVector tmp(chunk_offset, DIBS);
+					current_chunk.Append(arguments, true, &tmp, DIBS);
+					Vector tmp_res(result.GetType(), DIBS);
+					expr.function.function(current_chunk, *state, tmp_res);
+					result.Resize(nums, nums + DIBS);
+					VectorOperations::Copy(tmp_res, result, DIBS, 0, nums);
+					nums += DIBS;
+					left -= DIBS;
+					chunk_offset = left ? chunk_offset + DIBS : 0;
+					current_chunk.Reset();
+				} else { 
+					idx_t current_count = arguments.size() - chunk_offset;
+					SelectionVector tmp(chunk_offset, current_count);
+					current_chunk.Append(arguments, true, &tmp, current_count);
+					chunk_offset = 0;
+					left = 0;
+				}
+			}
+			state->profiler.EndSample(nums);
+			VerifyNullHandling(expr, current_chunk, result);
+			// No data in current_chunk
+			if (count == 0 && current_chunk.size() == 0) {
+				context.get()->udf_count -= 1;
+			}
+		} else {
+			nums = 0;
+		}
+	} else {
+		state->profiler.BeginSample();
+		expr.function.function(arguments, *state, result);
+		state->profiler.EndSample(count);
+		VerifyNullHandling(expr, arguments, result);
+	}
+
 	D_ASSERT(result.GetType() == expr.return_type);
 }
 

@@ -2,8 +2,8 @@
 
 #include "duckdb/common/vector_operations/vector_operations.hpp"
 #include "duckdb/execution/execution_context.hpp"
-#include "duckdb/storage/statistics/base_statistics.hpp"
 #include "duckdb/planner/expression/list.hpp"
+#include "duckdb/storage/statistics/base_statistics.hpp"
 
 namespace duckdb {
 
@@ -71,11 +71,17 @@ void ExpressionExecutor::Execute(DataChunk *input, DataChunk &result) {
 	SetChunk(input);
 	D_ASSERT(expressions.size() == result.ColumnCount());
 	D_ASSERT(!expressions.empty());
-
+	bool flag = false;
 	for (idx_t i = 0; i < expressions.size(); i++) {
+		if (!flag && expressions[i]->expression_class == ExpressionClass::BOUND_FUNCTION &&
+		    expressions[i]->Cast<BoundFunctionExpression>().function.null_handling ==
+		        FunctionNullHandling::SPECIAL_HANDLING) {
+			flag = true;
+		}
 		ExecuteExpression(i, result.data[i]);
 	}
-	result.SetCardinality(input ? input->size() : 1);
+	idx_t sizes = flag ? nums : input ? input->size() : 1;
+	result.SetCardinality(sizes);
 	result.Verify();
 }
 
@@ -92,6 +98,7 @@ idx_t ExpressionExecutor::SelectExpression(DataChunk &input, SelectionVector &se
 	states[0]->profiler.EndSample(chunk ? chunk->size() : 0);
 	return selected_tuples;
 }
+
 
 void ExpressionExecutor::ExecuteExpression(Vector &result) {
 	D_ASSERT(expressions.size() == 1);
@@ -177,9 +184,10 @@ void ExpressionExecutor::Execute(const Expression &expr, ExpressionState *state,
 	}
 #endif
 
-	if (count == 0) {
+	if (count == 0 && context.get()->zero_pipeline_finished) {
 		return;
 	}
+	bool use_udf = false;
 	if (result.GetType().id() != expr.return_type.id()) {
 		throw InternalException(
 		    "ExpressionExecutor::Execute called with a result vector of type %s that does not match expression type %s",
@@ -209,6 +217,7 @@ void ExpressionExecutor::Execute(const Expression &expr, ExpressionState *state,
 		break;
 	case ExpressionClass::BOUND_FUNCTION:
 		Execute(expr.Cast<BoundFunctionExpression>(), state, sel, count, result);
+		use_udf = expr.Cast<BoundFunctionExpression>().function.null_handling == FunctionNullHandling::SPECIAL_HANDLING;
 		break;
 	case ExpressionClass::BOUND_OPERATOR:
 		Execute(expr.Cast<BoundOperatorExpression>(), state, sel, count, result);
@@ -219,12 +228,15 @@ void ExpressionExecutor::Execute(const Expression &expr, ExpressionState *state,
 	default:
 		throw InternalException("Attempting to execute expression of unknown type!");
 	}
+	if (use_udf) {
+		count = nums;
+	}
 	Verify(expr, result, count);
 }
 
 idx_t ExpressionExecutor::Select(const Expression &expr, ExpressionState *state, const SelectionVector *sel,
                                  idx_t count, SelectionVector *true_sel, SelectionVector *false_sel) {
-	if (count == 0) {
+	if (count == 0 && context.get()->zero_pipeline_finished) {
 		return 0;
 	}
 	D_ASSERT(true_sel || false_sel);
