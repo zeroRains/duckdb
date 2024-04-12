@@ -61,6 +61,7 @@ void create_label_table(Connection con) {
 int main() {
 	DuckDB db(nullptr);
 	Connection con(db);
+	con.Query("SET threads = 1;");
 	create_label_table(con);
 	create_feature_table(con, 100);
 	// con.Query("SELECT * FROM feature JOIN label ON feature.label == label.id WHERE feature.label % 2 == 1")->Print();

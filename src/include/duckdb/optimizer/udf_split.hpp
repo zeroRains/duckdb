@@ -26,21 +26,19 @@ public:
 	unique_ptr<LogicalOperator> Rewrite(unique_ptr<LogicalOperator> op);
 
 private:
-	//! Detect udf
-	bool ExpressionHasUDF(unique_ptr<Expression> &expr);
 	//! Extract internal udf as a Logical_UDF
 	void ExtractInternalUDF(LogicalOperator &op);
 	//! Create a new UDFOP for op
-	void AppendOperator(LogicalOperator &src, unique_ptr<LogicalOperator> target);
+	void AppendOperator(LogicalOperator &parent, unique_ptr<LogicalOperator> child);
 	//! recurve check the child operator
 	void VisitOperatorChildren(LogicalOperator &op);
-	//! check the expression
-	void VisitExpression(unique_ptr<Expression> &op);
-	//! recurve check the child expression
-	void VisitExpressionChild(unique_ptr<Expression> &op);
+	//! check the expression of the current operator
+	void VisitOperatorExpression(LogicalOperator &op);
+	//! check the expression, only support one to one UDF
+	void VisitExpression(unique_ptr<Expression> *expression, LogicalOperator &parent, unique_ptr<LogicalOperator> *child);
+	//! recurve check the child expression, only support one to one UDF
+	void VisitExpressionChild(unique_ptr<Expression> *expression, LogicalOperator &parent_op, unique_ptr<LogicalOperator> *child_op);
 
-
-	bool is_rewrite = false;
 };
 
 } // namespace duckdb

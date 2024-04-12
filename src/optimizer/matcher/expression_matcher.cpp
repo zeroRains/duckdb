@@ -81,7 +81,7 @@ bool FunctionExpressionMatcher::Match(Expression &expr_p, vector<reference<Expre
 	if (!ExpressionMatcher::Match(expr_p, bindings)) {
 		return false;
 	}
-	auto &expr = expr_p.Cast<BoundFunctionExpression>(); // 这个位置就可以检测到UDF了
+	auto &expr = expr_p.Cast<BoundFunctionExpression>();
 	if (!FunctionMatcher::Match(function, expr.function.name)) {
 		return false;
 	}
