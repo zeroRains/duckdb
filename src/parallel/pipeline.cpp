@@ -16,7 +16,7 @@
 namespace duckdb {
 
 class PipelineTask : public ExecutorTask {
-	static constexpr const idx_t PARTIAL_CHUNK_COUNT = 3;
+	static constexpr const idx_t PARTIAL_CHUNK_COUNT = 50;
 
 public:
 	explicit PipelineTask(Pipeline &pipeline_p, shared_ptr<Event> event_p)

@@ -185,9 +185,8 @@ PipelineExecuteResult PipelineExecutor::Execute(idx_t max_chunks) {
 			// We need to handle the save_chunk in the UDF though there is no data in scan operator
 			if (context.client.udf_count > 0) {
 				source_chunk.Reset();
-				context.client.zero_pipeline_finished = false;
-				ExecutePushInternal(source_chunk);
 				context.client.zero_pipeline_finished = true;
+				ExecutePushInternal(source_chunk);
 				continue;
 			} else {
 				// The source was exhausted, try flushing all operators
@@ -475,6 +474,9 @@ OperatorResultType PipelineExecutor::Execute(DataChunk &input, DataChunk &result
 			// if current_idx > source_idx, we pass the previous operators' output through the Execute of the current
 			// operator
 			StartOperator(current_operator);
+			if(prev_chunk.GetCapacity() != current_chunk.GetCapacity()){
+				current_chunk.Resize(prev_chunk.GetCapacity());
+			}
 			auto result = current_operator.Execute(context, prev_chunk, current_chunk, *current_operator.op_state,
 			                                       *intermediate_states[current_intermediate - 1]);
 			EndOperator(current_operator, &current_chunk);
