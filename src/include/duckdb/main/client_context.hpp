@@ -88,7 +88,7 @@ public:
 	//! Record the count of UDF save_chunk
 	int udf_count = -1;
 	//! Record zero pipeline status
-	bool zero_pipeline_finished = false;
+	bool zero_pipeline = false;
 
 public:
 	MetaTransaction &ActiveTransaction() {

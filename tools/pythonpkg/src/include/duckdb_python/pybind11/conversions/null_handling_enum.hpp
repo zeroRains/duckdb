@@ -18,7 +18,7 @@ static FunctionNullHandling FunctionNullHandlingFromString(const string &type) {
 		return FunctionNullHandling::DEFAULT_NULL_HANDLING;
 	} else if (ltype == "special") {
 		return FunctionNullHandling::SPECIAL_HANDLING;
-	} else if (ltype == 'udf') {
+	} else if (ltype == "udf") {
 		return FunctionNullHandling::UDF_HANDLING;
 	} else {
 		throw InvalidInputException("'%s' is not a recognized type for 'null_handling'", type);

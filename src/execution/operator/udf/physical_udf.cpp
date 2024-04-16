@@ -12,7 +12,7 @@ public:
 	}
 
 	ExpressionExecutor executor;
-	idx_t DIBS = 2400;
+	idx_t DIBS = 4096;
 	bool is_init_current_chunk = false;
 	bool has_buffer = true;
 	DataChunk current_chunk;
@@ -33,7 +33,7 @@ OperatorResultType PhysicalUDF::Execute(ExecutionContext &context, DataChunk &in
 	auto &state = state_p.Cast<UDFState>();
 	auto &client_context = context.client;
 
-	if (count == 0 && !client_context.zero_pipeline_finished) {
+	if (count == 0 && !client_context.zero_pipeline) {
 		return OperatorResultType::NEED_MORE_INPUT;
 	}
 	// init current_chunk
@@ -47,7 +47,7 @@ OperatorResultType PhysicalUDF::Execute(ExecutionContext &context, DataChunk &in
 	if (count > 0) {
 		idx_t now_count = count + state.current_chunk.size();
 		if (now_count < state.DIBS) {
-			if (client_context.zero_pipeline_finished) {
+			if (client_context.zero_pipeline) {
 				chunk.Append(state.current_chunk, true);
 				chunk.Append(input, true);
 				client_context.udf_count -= 1;
@@ -71,7 +71,7 @@ OperatorResultType PhysicalUDF::Execute(ExecutionContext &context, DataChunk &in
 	} else {
 		// the count == 0 means no data to scan
 		chunk.Reference(state.current_chunk);
-		if (client_context.zero_pipeline_finished) {
+		if (client_context.zero_pipeline) {
 			client_context.udf_count -= 1;
 		}
 	}
