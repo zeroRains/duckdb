@@ -5,6 +5,23 @@ set(CMAKE_CXX_STANDARD 11)
 
 include_directories(../../src/include)
 link_directories(../../build/release/src)
+# link_directories(../../build/src)
+
+include_directories(/root/origin/tmp/include)
+link_directories(/root/origin/tmp/lib)
+
 
 add_executable(example main.cpp)
 target_link_libraries(example duckdb)
+add_executable(tpchq6_udf tpchq6_udf.cpp)
+target_link_libraries(tpchq6_udf duckdb)
+add_executable(udf2 udf2.cpp)
+target_link_libraries(udf2 duckdb)
+add_executable(udf3 udf3.cpp)
+target_link_libraries(udf3 duckdb)
+
+add_executable(example_lightgbm example_lightgbm.cpp)
+target_link_libraries(example_lightgbm _lightgbm)
+
+add_executable(udf_pf7 udf_pf7.cpp)
+target_link_libraries(udf_pf7 _lightgbm duckdb)

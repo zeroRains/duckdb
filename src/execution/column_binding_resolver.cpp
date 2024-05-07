@@ -24,8 +24,8 @@ void ColumnBindingResolver::VisitOperator(LogicalOperator &op) {
 	case LogicalOperatorType::LOGICAL_DELIM_JOIN: {
 		// special case: comparison join
 		auto &comp_join = op.Cast<LogicalComparisonJoin>();
-		// first get the bindings of the LHS and resolve the LHS expressions
-		VisitOperator(*comp_join.children[0]);
+		// first get the bindings of the LHS and resolve the LHS expressions 首先绑定左边的列（左子树的处理），然后解析左边的表达式（join条件的左边）
+		VisitOperator(*comp_join.children[0]); // 这个扫描左表，并通过Logical_get获取左表的数据，然后绑定到bindings中
 		for (auto &cond : comp_join.conditions) {
 			VisitExpression(&cond.left);
 		}
@@ -34,11 +34,11 @@ void ColumnBindingResolver::VisitOperator(LogicalOperator &op) {
 			VisitExpression(&expr);
 		}
 		// then get the bindings of the RHS and resolve the RHS expressions
-		VisitOperator(*comp_join.children[1]);
+		VisitOperator(*comp_join.children[1]); // 这个扫描右表，并通过Logical_get获取右表的数据，然后绑定到bindings中，本质上用的是同一个logical bind
 		for (auto &cond : comp_join.conditions) {
 			VisitExpression(&cond.right);
 		}
-		// finally update the bindings with the result bindings of the join
+		// finally update the bindings with the result bindings of the join // 
 		bindings = op.GetColumnBindings();
 		return;
 	}
