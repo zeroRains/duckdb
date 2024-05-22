@@ -57,8 +57,9 @@ public:
 		return data.size();
 	}
 	inline void SetCardinality(idx_t count_p) {
-		if (capacity < count_p)
-			capacity = count_p;
+		if (capacity < count_p) {
+			Resize(count_p);
+		}
 		this->count = count_p;
 	}
 	inline void SetCardinality(const DataChunk &other) {
