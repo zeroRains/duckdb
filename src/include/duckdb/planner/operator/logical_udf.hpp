@@ -23,8 +23,6 @@ public:
 	explicit LogicalUDF(unique_ptr<Expression> expression);
 	LogicalUDF();
 
-	vector<idx_t> projection_map;
-
 public:
 	vector<ColumnBinding> GetColumnBindings() override;
 

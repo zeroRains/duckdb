@@ -11,11 +11,11 @@ LogicalUDF::LogicalUDF() : LogicalOperator(LogicalOperatorType::LOGICAL_UDF) {
 }
 
 void LogicalUDF::ResolveTypes() {
-	types = MapTypes(children[0]->types, projection_map);
+	types = children[0]->types;
 }
 
 vector<ColumnBinding> LogicalUDF::GetColumnBindings() {
-	return MapBindings(children[0]->GetColumnBindings(), projection_map);
+	return children[0]->GetColumnBindings();
 }
 
 
