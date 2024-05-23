@@ -73,7 +73,7 @@ void DataChunk::Reset() {
 	for (idx_t i = 0; i < ColumnCount(); i++) {
 		data[i].ResetFromCache(vector_caches[i]);
 	}
-	capacity = MaxValue<idx_t>(STANDARD_VECTOR_SIZE, capacity);
+	capacity = STANDARD_VECTOR_SIZE;
 	SetCardinality(0);
 }
 
