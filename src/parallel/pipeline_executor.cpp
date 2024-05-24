@@ -187,6 +187,9 @@ PipelineExecuteResult PipelineExecutor::Execute(idx_t max_chunks) {
 				source_chunk.Reset();
 				context.client.zero_pipeline = true;
 				ExecutePushInternal(source_chunk);
+				while(in_process_operators.size()){
+					in_process_operators.pop();
+				}
 				continue;
 			} else {
 				// The source was exhausted, try flushing all operators
@@ -492,7 +495,7 @@ OperatorResultType PipelineExecutor::Execute(DataChunk &input, DataChunk &result
 			current_chunk.Verify();
 		}
 
-		if (current_chunk.size() == 0 ) {
+		if (current_chunk.size() == 0  && !context.client.zero_pipeline) {
 			// no output from this operator!
 			if (current_idx == initial_idx) {
 				// if we got no output from the scan, we are done

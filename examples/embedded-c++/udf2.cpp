@@ -58,17 +58,28 @@ void create_label_table(Connection con) {
 	printf("create label finished!\n");
 }
 
+void create_color_table(Connection con) {
+	con.Query("CREATE TABLE color (id INTEGER, r INTEGER, g INTEGER, b INTEGER)");
+	std::stringstream ss;
+	ss << "INSERT INTO color VALUES (0, 1, 2, 3), (1, 4, 5, 6), (2, 7, 8, 9), (3, 10, 11, 12)";
+	con.Query(ss.str());
+	printf("create label finished!\n");
+}
+
 int main() {
 	DuckDB db(nullptr);
 	Connection con(db);
+	// string sql = "SELECT i, udf_vectorized_int(f1, f2, f3) as predict, feature.label as label, label.name as class "
+	//              "FROM feature JOIN label ON "
+	//              "udf_vectorized_int(f1, f2, f3) == label.id WHERE udf_vectorized_int(f1, f2, f3)%2==1";
+	string sql = "SELECT i, udf_vectorized_int(feature.f1, color.r, label.id) as predict FROM feature JOIN label ON "
+	             "feature.label == label.id JOIN color ON label.id == color.id";
 	con.Query("SET threads = 1;");
 	create_label_table(con);
-	create_feature_table(con, 100);
-	// con.Query("SELECT * FROM feature JOIN label ON feature.label == label.id WHERE feature.label % 2 == 1")->Print();
-	con.CreateVectorizedFunction<int, float, float, float>("udf_vectorized_int", &udf_tmp<float, 3>);
-	con.Query("SELECT i, udf_vectorized_int(f1, f2, f3) as predict, feature.label as label, label.name as class FROM feature JOIN label ON "
-	          "udf_vectorized_int(f1, f2, f3) == label.id WHERE udf_vectorized_int(f1, f2, f3)%2==1")
-	    ->Print();
+	create_feature_table(con, 13000);
+	create_color_table(con);
+	con.CreateVectorizedFunction<int, float, int, float>("udf_vectorized_int", &udf_tmp<float, 3>);
+	con.Query(sql)->Print();
 	// con.Query("SELECT i FROM data WHERE i%2==0")->Print();
 	return 0;
 }
