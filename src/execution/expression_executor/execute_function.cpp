@@ -60,6 +60,7 @@ void ExpressionExecutor::Execute(const BoundFunctionExpression &expr, Expression
                                  const SelectionVector *sel, idx_t count, Vector &result) {
 	state->intermediate_chunk.Reset();
 	auto &arguments = state->intermediate_chunk;
+	arguments.SetCardinality(count);
 	if (!state->types.empty()) {
 		for (idx_t i = 0; i < expr.children.size(); i++) {
 			D_ASSERT(state->types[i] == expr.children[i]->return_type);
@@ -72,7 +73,6 @@ void ExpressionExecutor::Execute(const BoundFunctionExpression &expr, Expression
 		}
 		arguments.Verify();
 	}
-	arguments.SetCardinality(count);
 	D_ASSERT(expr.function.function);
 
 	// differetiate UDF and common function like +, -, * and /

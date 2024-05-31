@@ -67,7 +67,7 @@ void create_color_table(Connection con) {
 }
 
 int main() {
-	DuckDB db(nullptr);
+	DuckDB db("/root/db/duckdb_test/feature_label_color.db");
 	Connection con(db);
 	// string sql = "SELECT i, udf_vectorized_int(f1, f2, f3) as predict, feature.label as label, label.name as class "
 	//              "FROM feature JOIN label ON "
@@ -75,9 +75,9 @@ int main() {
 	string sql = "SELECT i, udf_vectorized_int(feature.f1, color.r, label.id) as predict FROM feature JOIN label ON "
 	             "feature.label == label.id JOIN color ON label.id == color.id";
 	con.Query("SET threads = 1;");
-	create_label_table(con);
-	create_feature_table(con, 13000);
-	create_color_table(con);
+	// create_label_table(con);
+	// create_color_table(con);
+	// create_feature_table(con, 13000);
 	con.CreateVectorizedFunction<int, float, int, float>("udf_vectorized_int", &udf_tmp<float, 3>);
 	con.Query(sql)->Print();
 	// con.Query("SELECT i FROM data WHERE i%2==0")->Print();

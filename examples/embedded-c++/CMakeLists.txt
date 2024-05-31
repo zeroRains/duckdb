@@ -4,8 +4,8 @@ project(example-c++)
 set(CMAKE_CXX_STANDARD 11)
 
 include_directories(../../src/include)
-link_directories(../../build/release/src)
-# link_directories(../../build/src)
+# link_directories(../../build/release/src)
+link_directories(../../build/src)
 include_directories(/root/origin/tmp/include)
 link_directories(/root/origin/tmp/lib)
 
