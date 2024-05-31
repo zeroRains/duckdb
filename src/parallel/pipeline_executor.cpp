@@ -187,9 +187,6 @@ PipelineExecuteResult PipelineExecutor::Execute(idx_t max_chunks) {
 				source_chunk.Reset();
 				context.client.zero_pipeline = true;
 				ExecutePushInternal(source_chunk);
-				while(in_process_operators.size()){
-					in_process_operators.pop();
-				}
 				continue;
 			} else {
 				// The source was exhausted, try flushing all operators
@@ -483,7 +480,7 @@ OperatorResultType PipelineExecutor::Execute(DataChunk &input, DataChunk &result
 			auto result = current_operator.Execute(context, prev_chunk, current_chunk, *current_operator.op_state,
 			                                       *intermediate_states[current_intermediate - 1]);
 			EndOperator(current_operator, &current_chunk);
-			if (result == OperatorResultType::HAVE_MORE_OUTPUT) {
+			if (result == OperatorResultType::HAVE_MORE_OUTPUT && !context.client.zero_pipeline) {
 				// more data remains in this operator
 				// push in-process marker
 				in_process_operators.push(current_idx);

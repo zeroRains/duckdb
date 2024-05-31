@@ -16,7 +16,7 @@ static void udf_tmp(DataChunk &input, ExpressionState &state, Vector &result) {
 	auto tmp_data3 = ConstantVector::GetData<TYPE>(input.data[2]);
 	memset(result_data, std::numeric_limits<TYPE>::min(), input.size() * sizeof(TYPE));
 	for (idx_t i = 0; i < input.size(); i++) {
-		result_data[i] = static_cast<int>(3 * tmp_data1[i] + 3.5 * tmp_data2[i] + 4 * tmp_data3[i]) % 4;
+		result_data[i] = tmp_data1[i];
 	}
 }
 
@@ -72,13 +72,12 @@ int main() {
 	// string sql = "SELECT i, udf_vectorized_int(f1, f2, f3) as predict, feature.label as label, label.name as class "
 	//              "FROM feature JOIN label ON "
 	//              "udf_vectorized_int(f1, f2, f3) == label.id WHERE udf_vectorized_int(f1, f2, f3)%2==1";
-	string sql = "SELECT i, udf_vectorized_int(feature.f1, color.r, label.id) as predict FROM feature JOIN label ON "
-	             "feature.label == label.id JOIN color ON label.id == color.id";
+	string sql = "SELECT udf_vectorized_int(sum(f1), count(f2), mean(f3)) as predict FROM feature GROUP BY i";
 	con.Query("SET threads = 1;");
 	// create_label_table(con);
 	// create_color_table(con);
 	// create_feature_table(con, 13000);
-	con.CreateVectorizedFunction<int, float, int, float>("udf_vectorized_int", &udf_tmp<float, 3>);
+	con.CreateVectorizedFunction<double, double, int64_t, double>("udf_vectorized_int", &udf_tmp<double, 3>);
 	con.Query(sql)->Print();
 	// con.Query("SELECT i FROM data WHERE i%2==0")->Print();
 	return 0;
