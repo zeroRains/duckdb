@@ -2,7 +2,9 @@ include_directories(../third_party/catch)
 include_directories(../third_party/tpce-tool/include)
 include_directories(../third_party/sqlite/include)
 include_directories(include)
-
+include_directories(${pybind11_INCLUDE_DIR})
+include_directories(${PYTHON_INCLUDE_DIRS})
+find_package(pybind11 REQUIRED)
 # Allows loading tests from registered extensions
 include_directories("${PROJECT_BINARY_DIR}/codegen/include/")
 add_definitions(-DGENERATED_EXTENSION_HEADERS=1)

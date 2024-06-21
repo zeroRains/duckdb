@@ -13,12 +13,16 @@
 #include "duckdb_python/pyresult.hpp"
 #include "duckdb/function/table/arrow.hpp"
 
+#include <iostream>
 namespace duckdb {
 
 void TransformDuckToArrowChunk(ArrowSchema &arrow_schema, ArrowArray &data, py::list &batches) {
 	py::gil_assert();
+	std::cout<<"you can come here__________________________\n";
 	auto pyarrow_lib_module = py::module::import("pyarrow").attr("lib");
+	std::cout<<"you can not come here__________________________\n";
 	auto batch_import_func = pyarrow_lib_module.attr("RecordBatch").attr("_import_from_c");
+	std::cout<<"you can not also come here__________________________\n";
 	batches.append(batch_import_func(reinterpret_cast<uint64_t>(&data), reinterpret_cast<uint64_t>(&arrow_schema)));
 }
 

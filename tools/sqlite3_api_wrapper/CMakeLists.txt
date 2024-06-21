@@ -1,3 +1,6 @@
+include_directories(${pybind11_INCLUDE_DIR})
+include_directories(${PYTHON_INCLUDE_DIRS})
+find_package(pybind11 REQUIRED)
 include_directories(include)
 add_subdirectory(sqlite3)
 

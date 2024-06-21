@@ -5,7 +5,9 @@ if(POLICY CMP0063)
 endif()
 
 project(imdb CXX)
-
+include_directories(${pybind11_INCLUDE_DIR})
+include_directories(${PYTHON_INCLUDE_DIRS})
+find_package(pybind11 REQUIRED)
 include_directories(include)
 
 set(CMAKE_BUILD_TYPE "Release")

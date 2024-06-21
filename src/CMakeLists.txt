@@ -1,3 +1,7 @@
+include_directories(${pybind11_INCLUDE_DIR})
+include_directories(${PYTHON_INCLUDE_DIRS})
+find_package(pybind11 REQUIRED)
+
 add_definitions(-DDUCKDB)
 
 if(${DISABLE_THREADS})
@@ -46,7 +50,6 @@ if(AMALGAMATION_BUILD)
           DESTINATION "${INSTALL_INCLUDE_DIR}/duckdb/common")
 
 else()
-
   add_definitions(-DDUCKDB_MAIN_LIBRARY)
 
   add_subdirectory(optimizer)
@@ -79,22 +82,32 @@ else()
       duckdb_mbedtls)
 
   add_library(duckdb SHARED ${ALL_OBJECT_FILES})
-  target_link_libraries(duckdb ${DUCKDB_LINK_LIBS})
+  target_link_libraries(duckdb ${DUCKDB_LINK_LIBS} ${PYTHON_LIBRARIES})
+
   link_threads(duckdb)
   link_extension_libraries(duckdb)
 
   add_library(duckdb_static STATIC ${ALL_OBJECT_FILES})
-  target_link_libraries(duckdb_static ${DUCKDB_LINK_LIBS})
+  target_link_libraries(duckdb_static ${DUCKDB_LINK_LIBS} ${PYTHON_LIBRARIES})
+
   link_threads(duckdb_static)
   link_extension_libraries(duckdb_static)
+  message(STATUS "________________________________________Found pybind11 ${pybind11_INCLUDE_DIRS}")
+  message(STATUS "__________________________________________Found python ${PYTHON_INCLUDE_DIRS}: ${PYTHON_LIBRARIES}")
+
 
   target_include_directories(
     duckdb PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-                  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+                  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+                  )
 
   target_include_directories(
     duckdb_static PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-                         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+                         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+                         )
+  
+  target_include_directories(duckdb_static PRIVATE ${PYTHON_INCLUDE_DIRS})
+  target_include_directories(duckdb PRIVATE ${PYTHON_INCLUDE_DIRS})
 
   install(
     DIRECTORY "${PROJECT_SOURCE_DIR}/src/include/duckdb"

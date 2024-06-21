@@ -8,11 +8,18 @@
 
 #pragma once
 
+// GIL HANDLE
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+#include <pybind11/stl.h>
+
 #include "duckdb/common/common.hpp"
 #include "duckdb/common/mutex.hpp"
 #include "duckdb/common/vector.hpp"
 #include "duckdb/parallel/task.hpp"
 #include "duckdb/common/atomic.hpp"
+
+namespace py = pybind11;
 
 namespace duckdb {
 
@@ -21,8 +28,36 @@ struct QueueProducerToken;
 class ClientContext;
 class DatabaseInstance;
 class TaskScheduler;
+class SubInterpreter;
 
 struct SchedulerThread;
+
+class SubInterpreter {
+public:
+	SubInterpreter() {
+		PyInterpreterConfig config = {
+		    .use_main_obmalloc = 0,
+		    .allow_fork = 0,
+		    .allow_exec = 0,
+		    .allow_threads = 1,
+		    .allow_daemon_threads = 0,
+		    .check_multi_interp_extensions = 1,
+		    .gil = PyInterpreterConfig_OWN_GIL,
+		};
+		Py_NewInterpreterFromConfig(&_ts, &config);
+	}
+	~SubInterpreter() {
+		if (_ts) {
+			Py_EndInterpreter(_ts);
+		}
+	}
+	void swap_to_self(){
+		PyThreadState_Swap(_ts);
+	}
+
+private:
+	PyThreadState *_ts;
+};
 
 struct ProducerToken {
 	ProducerToken(TaskScheduler &scheduler, unique_ptr<QueueProducerToken> token);
