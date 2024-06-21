@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 
 project(ParquetExtension)
-
+include_directories(${pybind11_INCLUDE_DIR})
+include_directories(${PYTHON_INCLUDE_DIRS})
+find_package(pybind11 REQUIRED)
 include_directories(
   include
   ../../third_party/parquet

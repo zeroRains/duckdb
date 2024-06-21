@@ -9,6 +9,7 @@
 #include "concurrentqueue.h"
 #include "duckdb/common/thread.hpp"
 #include "lightweightsemaphore.h"
+
 #include <thread>
 #else
 #include <queue>
@@ -224,6 +225,8 @@ void TaskScheduler::ExecuteTasks(idx_t max_tasks) {
 
 #ifndef DUCKDB_NO_THREADS
 static void ThreadExecuteTasks(TaskScheduler *scheduler, atomic<bool> *marker) {
+	SubInterpreter sub;
+	sub.swap_to_self();
 	scheduler->ExecuteForever(marker);
 }
 #endif

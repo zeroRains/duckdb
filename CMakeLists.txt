@@ -41,6 +41,20 @@ else()
   endif()
 endif()
 
+set(pybind11_DIR /root/db/origin/duckdb_origin/tools/pythonpkg/.eggs/pybind11-2.12.0-py3.12.egg/pybind11/share/cmake/pybind11)
+set(PYTHON_INCLUDE_DIRS /root/miniconda3/envs/3.12/include/python3.12)
+set(PYTHON_LIBRARIES /root/miniconda3/envs/3.12/lib)
+message(STATUS "________________________________________Found PYBIND11_RELATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}")
+
+include_directories(${pybind11_INCLUDE_DIR})
+include_directories(${PYTHON_INCLUDE_DIRS})
+
+find_package(pybind11)
+if(NOT pybind11_FOUND)
+  return()
+endif()
+
+
 # Determine install paths
 set(INSTALL_LIB_DIR
     lib

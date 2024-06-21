@@ -2,6 +2,7 @@
 #include "duckdb_python/import_cache/python_import_cache.hpp"
 #include "duckdb_python/import_cache/python_import_cache_item.hpp"
 #include "duckdb_python/pyconnection/pyconnection.hpp"
+#include <iostream>
 
 namespace duckdb {
 

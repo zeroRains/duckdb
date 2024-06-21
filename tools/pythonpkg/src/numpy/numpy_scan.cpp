@@ -399,9 +399,7 @@ void NumpyScan::Scan(PandasColumnBindData &bind_data, idx_t count, idx_t offset,
 						throw NotImplementedException(
 						    "Unsupported typekind constant %d for Python Unicode Compact decode", kind);
 					}
-				} else if (ascii_obj->state.kind == PyUnicode_WCHAR_KIND) {
-					throw InvalidInputException("Unsupported: decode not ready legacy string");
-				} else if (!PyUtil::PyUnicodeIsCompact(unicode_obj) && ascii_obj->state.kind != PyUnicode_WCHAR_KIND) {
+				} else if (!PyUtil::PyUnicodeIsCompact(unicode_obj)) {
 					throw InvalidInputException("Unsupported: decode ready legacy string");
 				} else {
 					throw InvalidInputException("Unsupported string type: no clue what this string is");

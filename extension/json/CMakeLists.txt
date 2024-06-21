@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 2.8.12)
 
 project(JSONExtension)
-
+include_directories(${pybind11_INCLUDE_DIR})
+include_directories(${PYTHON_INCLUDE_DIRS})
+find_package(pybind11 REQUIRED)
 include_directories(yyjson/include)
 include_directories(include)
 add_subdirectory(yyjson)
