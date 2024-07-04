@@ -233,8 +233,9 @@ struct ParameterKind {
 
 struct PythonUDFData {
 public:
-	PythonUDFData(const string &name, bool vectorized, FunctionNullHandling null_handling)
-	    : name(name), null_handling(null_handling), vectorized(vectorized) {
+	PythonUDFData(const string &name, bool vectorized, FunctionNullHandling null_handling,
+	 PythonUDFKind udf_kind = PythonUDFKind::COMMON, u_int32_t batch_size = DEFAULT_PREDICTION_BATCH_SIZE)
+	    : name(name), null_handling(null_handling), vectorized(vectorized), udf_kind(udf_kind), batch_size(batch_size) {
 		return_type = LogicalType::INVALID;
 		param_count = DConstants::INVALID_INDEX;
 	}
@@ -247,6 +248,8 @@ public:
 	FunctionNullHandling null_handling;
 	idx_t param_count;
 	bool vectorized;
+	PythonUDFKind udf_kind;
+	u_int32_t batch_size;
 
 public:
 	void Verify() {
@@ -346,6 +349,8 @@ public:
 		    side_effects ? FunctionStability::VOLATILE : FunctionStability::CONSISTENT;
 		ScalarFunction scalar_function(name, std::move(parameters), return_type, func, nullptr, nullptr, nullptr,
 		                               nullptr, varargs, function_side_effects, null_handling);
+
+		scalar_function.bridge_info = make_shared_ptr<IMBridgeExtraInfo>(FunctionKind(udf_kind), batch_size);
 		return scalar_function;
 	}
 };
@@ -355,9 +360,10 @@ public:
 ScalarFunction DuckDBPyConnection::CreateScalarUDF(const string &name, const py::function &udf,
                                                    const py::object &parameters,
                                                    const shared_ptr<DuckDBPyType> &return_type, bool vectorized,
+												   PythonUDFKind udf_kind, u_int32_t batch_size,												   
                                                    FunctionNullHandling null_handling,
                                                    PythonExceptionHandling exception_handling, bool side_effects) {
-	PythonUDFData data(name, vectorized, null_handling);
+	PythonUDFData data(name, vectorized, null_handling, udf_kind, batch_size);
 
 	data.AnalyzeSignature(udf);
 	data.OverrideParameters(parameters);

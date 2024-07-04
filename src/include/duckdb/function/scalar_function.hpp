@@ -86,6 +86,18 @@ struct FunctionBindExpressionInput {
 	BoundFunctionExpression &function;
 };
 
+enum class FunctionKind: u_int8_t {COMMON = 0, PREDICTION=1};
+
+#define DEFAULT_PREDICTION_BATCH_SIZE 2048U
+
+struct IMBridgeExtraInfo
+{
+	FunctionKind kind;
+	u_int32_t batch_size;
+
+	IMBridgeExtraInfo(FunctionKind kind, u_int32_t batch_size): kind(kind), batch_size(batch_size) {};
+};
+
 //! The scalar function type
 typedef std::function<void(DataChunk &, ExpressionState &, Vector &)> scalar_function_t;
 //! The type to bind the scalar function and to create the function data
@@ -151,6 +163,8 @@ public:
 	function_deserialize_t deserialize;
 	//! Additional function info, passed to the bind
 	shared_ptr<ScalarFunctionInfo> function_info;
+
+	shared_ptr<IMBridgeExtraInfo> bridge_info;
 
 	DUCKDB_API bool operator==(const ScalarFunction &rhs) const;
 	DUCKDB_API bool operator!=(const ScalarFunction &rhs) const;
