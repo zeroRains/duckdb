@@ -19,6 +19,8 @@
 #include "duckdb/execution/physical_operator_states.hpp"
 #include "duckdb/common/enums/order_preservation_type.hpp"
 
+#include "duckdb/function/scalar_function.hpp"
+
 namespace duckdb {
 class Event;
 class Executor;
@@ -248,5 +250,25 @@ protected:
 private:
 	bool CanCacheType(const LogicalType &type);
 };
+
+namespace imbridge {
+
+#define DEFAULT_RESERVED_CAPACITY STANDARD_VECTOR_SIZE*2
+#define INITIAL_PREDICTION_SIZE DEFAULT_PREDICTION_BATCH_SIZE
+
+class PredictionState : public OperatorState {
+public:
+	explicit PredictionState(ExecutionContext &context,const vector<LogicalType> &input_types,
+	idx_t prediction_size = INITIAL_PREDICTION_SIZE, idx_t buffer_capacity = DEFAULT_RESERVED_CAPACITY)
+	    : prediction_size(prediction_size) {
+            input_buffer = make_uniq<DataChunk>();
+            input_buffer->Initialize(Allocator::Get(context.client), input_types,  buffer_capacity);
+	}
+
+    unique_ptr<DataChunk> input_buffer;
+    idx_t prediction_size;
+};
+
+} // namespace imbridge
 
 } // namespace duckdb

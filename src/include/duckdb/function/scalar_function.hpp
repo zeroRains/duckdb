@@ -92,8 +92,8 @@ enum class FunctionKind: u_int8_t {COMMON = 0, PREDICTION=1};
 
 struct IMBridgeExtraInfo
 {
-	FunctionKind kind;
-	u_int32_t batch_size;
+	FunctionKind kind = FunctionKind::COMMON;
+	u_int32_t batch_size = DEFAULT_PREDICTION_BATCH_SIZE;
 
 	IMBridgeExtraInfo(FunctionKind kind, u_int32_t batch_size): kind(kind), batch_size(batch_size) {};
 };
