@@ -21,6 +21,9 @@ def main_test():
     con.sql("create table t1(a double, b double);")
     con.sql("insert into t1 values (2.0, 3.0), (4.0, 7.0);")
 
+    con.sql("create table t2(a double, b double);")
+    con.sql("insert into t2 values (2.0, 3.0), (4.0, 7.0);")
+
     con.table("t1").show()
 
     res = con.sql('''
@@ -35,14 +38,36 @@ def main_test():
     ''').show()
 
     res = con.sql('''
-    explain SELECT a, b FROM t1 where udf(a,b) > 2.2 and cos(a) > 0.5;
+    explain SELECT a, b FROM t1 where udf(a,b) > 2.2 and cos(a) > -1;
     ''').fetchall()
 
     for elem in res[0]:
          print(elem)
 
     res = con.sql('''
-    SELECT a, b FROM t1 where udf(a,b) > 2.2 and cos(a) > 0.5;
+    SELECT a, b FROM t1 where udf(a,b) > 2.2 and cos(a) > -1;
+    ''').show()
+
+    res = con.sql('''
+    explain SELECT t1.a, t2.b FROM t1,t2 where udf(t1.a, t2.b) > 2.2;
+    ''').fetchall()
+
+    for elem in res[0]:
+         print(elem)
+    
+    res = con.sql('''
+    SELECT t1.a, t2.b FROM t1,t2 where udf(t1.a, t2.b) > 2.2;
+    ''').show()
+
+    res = con.sql('''
+    explain SELECT t1.a, t2.b FROM t1,t2 where udf(t1.a, t2.b) > 2.2 and t1.a+t2.b > 5.2;
+    ''').fetchall()
+
+    for elem in res[0]:
+         print(elem)
+
+    res = con.sql('''
+    SELECT t1.a, t2.b FROM t1,t2 where udf(t1.a, t2.b) > 2.2 and t1.a+t2.b > 5.2;
     ''').show()
 
 
