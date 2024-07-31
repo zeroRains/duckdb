@@ -22,6 +22,10 @@ class VectorCache;
 class Serializer;
 class Deserializer;
 
+namespace imbridge {
+	class ChunkBuffer;
+}
+
 //!  A Data Chunk represents a set of vectors.
 /*!
     The data chunk class is the intermediate representation used by the
@@ -41,6 +45,9 @@ class Deserializer;
    selection vector that underlying vectors can point to.
 */
 class DataChunk {
+
+friend class imbridge::ChunkBuffer;
+
 public:
 	//! Creates an empty DataChunk
 	DUCKDB_API DataChunk();

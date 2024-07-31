@@ -25,7 +25,11 @@ static py::list ConvertToSingleBatch(vector<LogicalType> &types, vector<string> 
 	ArrowConverter::ToArrowSchema(&schema, types, names, options);
 
 	py::list single_batch;
-	ArrowAppender appender(types, STANDARD_VECTOR_SIZE, options);
+
+	idx_t init_capacity = input.size() > STANDARD_VECTOR_SIZE ?  NextPowerOfTwo(input.size()) : STANDARD_VECTOR_SIZE;
+	ArrowAppender appender(types, init_capacity, options);
+	// ArrowAppender appender(types, STANDARD_VECTOR_SIZE, options);
+
 	appender.Append(input, 0, input.size(), input.size());
 	auto array = appender.Finalize();
 	TransformDuckToArrowChunk(schema, array, single_batch);
@@ -51,7 +55,8 @@ static void ConvertPyArrowToDataChunk(const py::object &table, Vector &out, Clie
 	auto stream_factory_get_schema = PythonTableArrowArrayStreamFactory::GetSchema;
 
 	// Get the functions we need
-	auto function = ArrowTableFunction::ArrowScanFunction;
+	// auto function = ArrowTableFunction::ArrowScanFunction;
+	auto function = ArrowTableFunction::ArrowDirectConvertFunction;
 	auto bind = ArrowTableFunction::ArrowScanBind;
 	auto init_global = ArrowTableFunction::ArrowScanInitGlobal;
 	auto init_local = ArrowTableFunction::ArrowScanInitLocalInternal;
@@ -87,7 +92,11 @@ static void ConvertPyArrowToDataChunk(const py::object &table, Vector &out, Clie
 
 	DataChunk result;
 	// Reserve for STANDARD_VECTOR_SIZE instead of count, in case the returned table contains too many tuples
-	result.Initialize(context, return_types, STANDARD_VECTOR_SIZE);
+	// result.Initialize(context, return_types, STANDARD_VECTOR_SIZE);
+
+	// IMBridge optimization:  the vector row count may be larger than STANDARD_VECTOR_SIZE
+	idx_t init_capacity = count > STANDARD_VECTOR_SIZE ?  NextPowerOfTwo(count) : STANDARD_VECTOR_SIZE;
+	result.Initialize(context, return_types, init_capacity);
 
 	vector<column_t> column_ids = {0};
 	TableFunctionInitInput input(bind_data.get(), column_ids, vector<idx_t>(), nullptr);

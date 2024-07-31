@@ -1,10 +1,25 @@
 #pragma once
 
+#include "duckdb/execution/physical_operator_states.hpp"
 #include "duckdb/common/unordered_set.hpp"
 #include "duckdb/planner/logical_operator.hpp"
 #include "duckdb/common/vector.hpp"
 
+#include "imbridge/execution/chunk_buffer.hpp"
+
 namespace duckdb {
+
+enum class FunctionKind: u_int8_t {COMMON = 0, PREDICTION=1};
+
+#define DEFAULT_PREDICTION_BATCH_SIZE 2048U
+
+struct IMBridgeExtraInfo
+{
+	FunctionKind kind = FunctionKind::COMMON;
+	u_int32_t batch_size = DEFAULT_PREDICTION_BATCH_SIZE;
+
+	IMBridgeExtraInfo(FunctionKind kind, u_int32_t batch_size): kind(kind), batch_size(batch_size) {};
+};
 
 namespace imbridge {
 
@@ -30,6 +45,32 @@ private:
 
 	void VisitExpressionChild(Expression &expression, idx_t root_idx);
 
+};
+
+} // namespace imbridge
+
+namespace imbridge {
+
+#define DEFAULT_RESERVED_CAPACITY STANDARD_VECTOR_SIZE*2
+#define INITIAL_PREDICTION_SIZE DEFAULT_PREDICTION_BATCH_SIZE
+
+class PredictionState : public OperatorState {
+public:
+	explicit PredictionState(ExecutionContext &context,const vector<LogicalType> &input_types,
+	idx_t prediction_size = INITIAL_PREDICTION_SIZE, idx_t buffer_capacity = DEFAULT_RESERVED_CAPACITY)
+	    : prediction_size(prediction_size), padded(0), output_left(0), base_offset(0) {
+            input_buffer = make_uniq<ChunkBuffer>();
+            input_buffer->Initialize(Allocator::Get(context.client), input_types,  buffer_capacity);
+	}
+
+    unique_ptr<ChunkBuffer> input_buffer;
+    idx_t prediction_size;
+
+	idx_t padded;
+
+    // slcing range for batch adapter
+    idx_t output_left;
+    idx_t base_offset;
 };
 
 } // namespace imbridge

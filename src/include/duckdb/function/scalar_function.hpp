@@ -17,6 +17,8 @@
 #include "duckdb/storage/statistics/base_statistics.hpp"
 #include "duckdb/common/optional_ptr.hpp"
 
+#include "imbridge/execution/plan_prediction_util.hpp"
+
 namespace duckdb {
 
 struct FunctionLocalState {
@@ -86,18 +88,6 @@ struct FunctionBindExpressionInput {
 	BoundFunctionExpression &function;
 };
 
-enum class FunctionKind: u_int8_t {COMMON = 0, PREDICTION=1};
-
-#define DEFAULT_PREDICTION_BATCH_SIZE 2048U
-
-struct IMBridgeExtraInfo
-{
-	FunctionKind kind = FunctionKind::COMMON;
-	u_int32_t batch_size = DEFAULT_PREDICTION_BATCH_SIZE;
-
-	IMBridgeExtraInfo(FunctionKind kind, u_int32_t batch_size): kind(kind), batch_size(batch_size) {};
-};
-
 //! The scalar function type
 typedef std::function<void(DataChunk &, ExpressionState &, Vector &)> scalar_function_t;
 //! The type to bind the scalar function and to create the function data
@@ -164,6 +154,7 @@ public:
 	//! Additional function info, passed to the bind
 	shared_ptr<ScalarFunctionInfo> function_info;
 
+	//! Additional function info used in IMBridge
 	shared_ptr<IMBridgeExtraInfo> bridge_info;
 
 	DUCKDB_API bool operator==(const ScalarFunction &rhs) const;

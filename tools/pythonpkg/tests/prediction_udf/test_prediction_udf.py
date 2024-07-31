@@ -8,24 +8,25 @@ import pandas as pd
 
 
 def udf(a, b):
+    print(len(a))
     return a
 
-def main_test():
-    print(duckdb.functional.PREDICTION)
-    print(duckdb.functional.COMMON)
-    
-    con = duckdb.connect(":memory:")
-    con.create_function("udf", udf,
-                [DOUBLE, DOUBLE], DOUBLE, type="arrow", kind=duckdb.functional.PREDICTION)
-    
-    con.sql("create table t1(a double, b double);")
+con = duckdb.connect(":memory:")
+con.create_function("udf", udf,
+            [DOUBLE, DOUBLE], DOUBLE, type="arrow", kind=duckdb.functional.PREDICTION, batch_size=4444)
+
+print(duckdb.functional.PREDICTION)
+print(duckdb.functional.COMMON)
+
+con.sql("create table t1(a double, b double);")
+for i in range(4050):
     con.sql("insert into t1 values (2.0, 3.0), (4.0, 7.0);")
 
-    con.sql("create table t2(a double, b double);")
-    con.sql("insert into t2 values (2.0, 3.0), (4.0, 7.0);")
+con.sql("create table t2(a double, b double);")
+con.sql("insert into t2 values (2.0, 3.0), (4.0, 7.0);")
+con.table("t1").show()
 
-    con.table("t1").show()
-
+def project_test():
     res = con.sql('''
     explain SELECT udf(a,b), a, b FROM t1;
     ''').fetchall()
@@ -37,6 +38,7 @@ def main_test():
     SELECT udf(a,b), a, b FROM t1;
     ''').show()
 
+def filter_test():
     res = con.sql('''
     explain SELECT a, b FROM t1 where udf(a,b) > 2.2 and cos(a) > -1;
     ''').fetchall()
@@ -71,10 +73,6 @@ def main_test():
     ''').show()
 
 
-class TestPredictionUDF(object):
-    def test_create_prediction_udf(self):
-        main_test()
-
-
 if __name__ == "__main__":
-    main_test()
+    project_test()
+    # filter_test()
