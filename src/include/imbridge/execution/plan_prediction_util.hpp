@@ -5,7 +5,7 @@
 #include "duckdb/planner/logical_operator.hpp"
 #include "duckdb/common/vector.hpp"
 
-#include "imbridge/execution/chunk_buffer.hpp"
+#include "imbridge/execution/batch_controller.hpp"
 
 namespace duckdb {
 
@@ -59,16 +59,16 @@ public:
 	explicit PredictionState(ExecutionContext &context,const vector<LogicalType> &input_types,
 	idx_t prediction_size = INITIAL_PREDICTION_SIZE, idx_t buffer_capacity = DEFAULT_RESERVED_CAPACITY)
 	    : prediction_size(prediction_size), padded(0), output_left(0), base_offset(0) {
-            input_buffer = make_uniq<ChunkBuffer>();
-            input_buffer->Initialize(Allocator::Get(context.client), input_types,  buffer_capacity);
+            controller = make_uniq<BatchController>();
+            controller->Initialize(Allocator::Get(context.client), input_types,  buffer_capacity);
 	}
 
-    unique_ptr<ChunkBuffer> input_buffer;
+    unique_ptr<BatchController> controller;
     idx_t prediction_size;
 
 	idx_t padded;
 
-    // slcing range for batch adapter
+    // slicing range for batch adapting
     idx_t output_left;
     idx_t base_offset;
 };

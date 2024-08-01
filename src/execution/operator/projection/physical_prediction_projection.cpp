@@ -60,7 +60,7 @@ PhysicalPredictionProjection::PhysicalPredictionProjection(vector<LogicalType> t
 OperatorResultType PhysicalPredictionProjection::Execute(ExecutionContext &context, DataChunk &input, DataChunk &chunk,
                                                GlobalOperatorState &gstate, OperatorState &state_p) const {
 	auto &state = state_p.Cast<PredictionProjectionState>();
-    auto &in_buf = state.input_buffer;
+    auto &controller = state.controller;
     auto &out_buf = state.output_buffer;
     auto &padded = state.padded;
     auto &output_left = state.output_left;
@@ -72,11 +72,11 @@ OperatorResultType PhysicalPredictionProjection::Execute(ExecutionContext &conte
     // batch adapting
     if (output_left) {
         if (output_left <= STANDARD_VECTOR_SIZE) {
-            in_buf->BatchAdapting(*out_buf, chunk, base_offset, output_left);
+            controller->BatchAdapting(*out_buf, chunk, base_offset, output_left);
             output_left = 0;
             base_offset = 0;
         } else {
-            in_buf->BatchAdapting(*out_buf, chunk, base_offset);
+            controller->BatchAdapting(*out_buf, chunk, base_offset);
             output_left -= STANDARD_VECTOR_SIZE;
             base_offset += STANDARD_VECTOR_SIZE;
         }
@@ -84,54 +84,54 @@ OperatorResultType PhysicalPredictionProjection::Execute(ExecutionContext &conte
         return ret;
     }
 
-    switch (in_buf->GetState()) {
-    case ChunkBufferState::SLICING: {
-        if (in_buf->HasNext(batch_size)) {
-            NEXT_EXE_ADAPT(state, in_buf, batch_size, out_buf, chunk,
+    switch (controller->GetState()) {
+    case BatchControllerState::SLICING: {
+        if (controller->HasNext(batch_size)) {
+            NEXT_EXE_ADAPT(state, controller, batch_size, out_buf, chunk,
              OperatorResultType::HAVE_MORE_OUTPUT, OperatorResultType::HAVE_MORE_OUTPUT, ret);
         } else {
             // check wheather the buffer should be reset
-            if (in_buf->GetSize() == 0) {
+            if (controller->GetSize() == 0) {
                 // the buffer state is reset to EMPTY
-                in_buf->ResetBuffer();
+                controller->ResetBuffer();
             } else {
-                in_buf->SetState(ChunkBufferState::BUFFERRING);
+                controller->SetState(BatchControllerState::BUFFERRING);
             }
             ret = OperatorResultType::NEED_MORE_INPUT;
         }
         break;
     }
-    case ChunkBufferState::EMPTY: {
-        in_buf->ResetBuffer();
+    case BatchControllerState::EMPTY: {
+        controller->ResetBuffer();
         idx_t remained = input.size() - padded;
         ret = OperatorResultType::NEED_MORE_INPUT;
 
         if (remained > 0) {
-            in_buf->PushChunk(input, padded, input.size());
+            controller->PushChunk(input, padded, input.size());
             if (remained < batch_size) {
-                in_buf->SetState(ChunkBufferState::BUFFERRING); 
+                controller->SetState(BatchControllerState::BUFFERRING); 
             } else {
                 // opt: perform slicing directly
-                in_buf->SetState(ChunkBufferState::SLICING);
+                controller->SetState(BatchControllerState::SLICING);
                 ret = OperatorResultType::HAVE_MORE_OUTPUT;
             }
         }
         padded = 0;
         break;
     }
-    case ChunkBufferState::BUFFERRING: {
-        if (in_buf->GetSize() + input.size() < batch_size) {
-            in_buf->PushChunk(input);
-            in_buf->SetState(ChunkBufferState::BUFFERRING);
+    case BatchControllerState::BUFFERRING: {
+        if (controller->GetSize() + input.size() < batch_size) {
+            controller->PushChunk(input);
+            controller->SetState(BatchControllerState::BUFFERRING);
             ret = OperatorResultType::NEED_MORE_INPUT;
         } else {
-            padded = batch_size - in_buf->GetSize();
-            in_buf->PushChunk(input, 0, padded);
+            padded = batch_size - controller->GetSize();
+            controller->PushChunk(input, 0, padded);
 
-            NEXT_EXE_ADAPT(state, in_buf, batch_size, out_buf, chunk, 
+            NEXT_EXE_ADAPT(state, controller, batch_size, out_buf, chunk, 
             OperatorResultType::HAVE_MORE_OUTPUT, OperatorResultType::HAVE_MORE_OUTPUT, ret);
 
-            in_buf->SetState(ChunkBufferState::EMPTY);
+            controller->SetState(BatchControllerState::EMPTY);
         }  
         break;
     }
@@ -159,9 +159,8 @@ string PhysicalPredictionProjection::ParamsToString() const {
 
 OperatorFinalizeResultType PhysicalPredictionProjection::FinalExecute(ExecutionContext &context,
  DataChunk &chunk, GlobalOperatorState &gstate, OperatorState &state) const {
-    chunk.SetCardinality(0);
     auto &local = state.Cast<PredictionProjectionState>();
-    auto &in_buf = local.input_buffer;
+    auto &controller = local.controller;
     auto &out_buf = local.output_buffer;
 
     auto &output_left = local.output_left;
@@ -174,11 +173,11 @@ OperatorFinalizeResultType PhysicalPredictionProjection::FinalExecute(ExecutionC
     // batch adapting for the rest of output chunk
     if (output_left) {
         if (output_left <= STANDARD_VECTOR_SIZE) {
-            in_buf->BatchAdapting(*out_buf, chunk, base_offset, output_left);
+            controller->BatchAdapting(*out_buf, chunk, base_offset, output_left);
             output_left = 0;
             base_offset = 0;
         } else {
-            in_buf->BatchAdapting(*out_buf, chunk, base_offset);
+            controller->BatchAdapting(*out_buf, chunk, base_offset);
             output_left -= STANDARD_VECTOR_SIZE;
             base_offset += STANDARD_VECTOR_SIZE;
         }
@@ -188,12 +187,12 @@ OperatorFinalizeResultType PhysicalPredictionProjection::FinalExecute(ExecutionC
         return ret;
     }
 
-    if (in_buf->HasNext(batch_size)) {
-        NEXT_EXE_ADAPT(local, in_buf, batch_size, out_buf, chunk, 
+    if (controller->HasNext(batch_size)) {
+        NEXT_EXE_ADAPT(local, controller, batch_size, out_buf, chunk, 
         OperatorFinalizeResultType::HAVE_MORE_OUTPUT, OperatorFinalizeResultType::HAVE_MORE_OUTPUT, ret);
     } else {
-        if (in_buf->GetSize() > 0) {
-            NEXT_EXE_ADAPT(local, in_buf, in_buf->GetSize(), out_buf, chunk, 
+        if (controller->GetSize() > 0) {
+            NEXT_EXE_ADAPT(local, controller, controller->GetSize(), out_buf, chunk, 
             OperatorFinalizeResultType::HAVE_MORE_OUTPUT, OperatorFinalizeResultType::FINISHED, ret);
         } 
     }

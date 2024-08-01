@@ -21,7 +21,7 @@ add_library_unity(
   reservoir_sample.cpp
   window_executor.cpp
   window_segment_tree.cpp
-  chunk_buffer.cpp)
+  batch_controller.cpp)
 set(ALL_OBJECT_FILES
     ${ALL_OBJECT_FILES} $<TARGET_OBJECTS:duckdb_execution>
     PARENT_SCOPE)

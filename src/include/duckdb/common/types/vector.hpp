@@ -25,7 +25,7 @@ class VectorListBuffer;
 struct SelCache;
 
 namespace imbridge {
-	class ChunkBuffer;
+	class BatchController;
 }
 
 struct UnifiedVectorFormat {
@@ -94,7 +94,7 @@ class Vector {
 	friend class DataChunk;
 	friend class VectorCacheBuffer;
 
-	friend class imbridge::ChunkBuffer;
+	friend class imbridge::BatchController;
 
 public:
 	//! Create a vector that references the other vector

@@ -21,8 +21,6 @@
 
 #include "duckdb/function/scalar_function.hpp"
 
-#include "imbridge/execution/chunk_buffer.hpp"
-
 namespace duckdb {
 class Event;
 class Executor;

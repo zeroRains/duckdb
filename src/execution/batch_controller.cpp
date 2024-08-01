@@ -1,4 +1,4 @@
-#include "imbridge/execution/chunk_buffer.hpp"
+#include "imbridge/execution/batch_controller.hpp"
 #include "duckdb/common/typedefs.hpp"
 #include "duckdb/common/vector_operations/vector_operations.hpp"
 
@@ -10,11 +10,11 @@ namespace imbridge {
         return reinterpret_cast<data_ptr_t>(reinterpret_cast<T>(ptr) + offset);
     }
 
-    ChunkBuffer::ChunkBuffer(): store() {}
+    BatchController::BatchController(): store() {}
 
-    ChunkBuffer::~ChunkBuffer() {}
+    BatchController::~BatchController() {}
 
-    void ChunkBuffer::InternalVecShift(Vector &vec, data_ptr_t data_view, idx_t offset) {
+    void BatchController::InternalVecShift(Vector &vec, data_ptr_t data_view, idx_t offset) {
         auto &type = vec.GetType();
         switch (type.id()) {
         case LogicalTypeId::BOOLEAN:
@@ -136,7 +136,7 @@ namespace imbridge {
         }
     }
     
-    void ChunkBuffer::InternalSlicing(DataChunk &source, DataChunk &target, idx_t start_offset, idx_t stop_offset) {
+    void BatchController::InternalSlicing(DataChunk &source, DataChunk &target, idx_t start_offset, idx_t stop_offset) {
         D_ASSERT(stop_offset > start_offset);
         D_ASSERT(stop_offset <= high_offset);
         idx_t slice_size = stop_offset - start_offset;
@@ -161,10 +161,10 @@ namespace imbridge {
         target.SetCardinality(slice_size);
     }
 
-    void ChunkBuffer::Initialize(Allocator &allocator, const vector<LogicalType> &types, idx_t capacity) {
+    void BatchController::Initialize(Allocator &allocator, const vector<LogicalType> &types, idx_t capacity) {
         base_offset = 0;
         high_offset = base_offset;
-        state = ChunkBufferState::EMPTY;
+        state = BatchControllerState::EMPTY;
         store.Initialize(allocator, types, capacity);
         sliced.InitializeEmpty(types);
 
@@ -176,10 +176,10 @@ namespace imbridge {
         }
     }
 
-    void ChunkBuffer::ResetBuffer() {
+    void BatchController::ResetBuffer() {
         base_offset = 0;
         high_offset = base_offset;
-        state = ChunkBufferState::EMPTY;
+        state = BatchControllerState::EMPTY;
         sliced.Reset();
         if (store.data.empty() || store.vector_caches.empty()) {
             return;
@@ -195,8 +195,8 @@ namespace imbridge {
         store.SetCardinality(0);
     }
 
-    void ChunkBuffer::PushChunk(const DataChunk &other, idx_t start_offset, idx_t stop_offset) {
-        D_ASSERT(state != ChunkBufferState::SLICING);
+    void BatchController::PushChunk(const DataChunk &other, idx_t start_offset, idx_t stop_offset) {
+        D_ASSERT(state != BatchControllerState::SLICING);
         idx_t count = stop_offset - start_offset;
         idx_t new_offset = high_offset + count;
         if (count == 0) {
@@ -223,11 +223,11 @@ namespace imbridge {
         high_offset = new_offset;
     }
 
-    void ChunkBuffer::PushChunk(const DataChunk &other) {
+    void BatchController::PushChunk(const DataChunk &other) {
         PushChunk(other, 0, other.size());
     }
 
-    DataChunk & ChunkBuffer::NextBatch(idx_t required) {
+    DataChunk & BatchController::NextBatch(idx_t required) {
         idx_t start_offset = base_offset;
         idx_t stop_offset = start_offset + required;
         InternalSlicing(store, sliced, start_offset, stop_offset);
@@ -235,24 +235,24 @@ namespace imbridge {
         return sliced;
     }
 
-    bool ChunkBuffer::HasNext(idx_t required) {
+    bool BatchController::HasNext(idx_t required) {
         return high_offset >= base_offset + required;
     }
 
-    ChunkBufferState ChunkBuffer::GetState() {
+    BatchControllerState BatchController::GetState() {
         return state;
     }
 
-    void ChunkBuffer::SetState(ChunkBufferState new_state){
+    void BatchController::SetState(BatchControllerState new_state){
         state = new_state;
     }
     
-    idx_t ChunkBuffer::GetSize() {
+    idx_t BatchController::GetSize() {
         return high_offset - base_offset;
     }
 
     // helper methods
-    void ChunkBuffer::ExternalChunkReset(DataChunk &input) {
+    void BatchController::ExternalChunkReset(DataChunk &input) {
         for (idx_t i = 0; i < input.ColumnCount(); i++) {
             input.data[i].ResetFromCache(input.vector_caches[i]);
         }
@@ -265,7 +265,7 @@ namespace imbridge {
         }
     }
 
-    void ChunkBuffer::BatchAdapting(DataChunk &input, DataChunk &output, idx_t start_offset, idx_t size) {
+    void BatchController::BatchAdapting(DataChunk &input, DataChunk &output, idx_t start_offset, idx_t size) {
         idx_t stop_offset = start_offset + size;
         InternalSlicing(input, output, start_offset, stop_offset);
     }

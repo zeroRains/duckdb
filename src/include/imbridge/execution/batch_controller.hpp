@@ -8,12 +8,12 @@ namespace duckdb {
 
 namespace imbridge {
 
-enum class ChunkBufferState: uint8_t { EMPTY, SLICING, BUFFERRING };
+enum class BatchControllerState: uint8_t { EMPTY, SLICING, BUFFERRING };
     
-class ChunkBuffer {
+class BatchController {
 public:
-	ChunkBuffer();
-	~ChunkBuffer();
+	BatchController();
+	~BatchController();
     void Initialize(Allocator &allocator, const vector<LogicalType> &types, idx_t capacity);
     void ResetBuffer();
     void PushChunk(const DataChunk &other);
@@ -21,8 +21,8 @@ public:
     DataChunk & NextBatch(idx_t required);
     bool HasNext(idx_t required);
 public:
-    ChunkBufferState GetState();
-    void SetState(ChunkBufferState new_state);
+    BatchControllerState GetState();
+    void SetState(BatchControllerState new_state);
     idx_t GetSize();
 public:
     // helper method for external chunk reset
@@ -38,7 +38,7 @@ private:
     DataChunk sliced;
     idx_t base_offset;
     idx_t high_offset;
-    ChunkBufferState state;
+    BatchControllerState state;
 };
 
 } // namespace imbridge

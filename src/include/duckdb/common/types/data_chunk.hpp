@@ -23,7 +23,7 @@ class Serializer;
 class Deserializer;
 
 namespace imbridge {
-	class ChunkBuffer;
+	class BatchController;
 }
 
 //!  A Data Chunk represents a set of vectors.
@@ -46,7 +46,7 @@ namespace imbridge {
 */
 class DataChunk {
 
-friend class imbridge::ChunkBuffer;
+friend class imbridge::BatchController;
 
 public:
 	//! Creates an empty DataChunk
