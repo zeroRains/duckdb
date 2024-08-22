@@ -1,3 +1,6 @@
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 if(NOT SUN AND BUILD_SHELL)
   add_subdirectory(sqlite3_api_wrapper)
   add_subdirectory(shell)

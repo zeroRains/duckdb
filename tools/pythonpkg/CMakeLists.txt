@@ -1,3 +1,6 @@
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 include_directories(src)
 include_directories(../../)
 include_directories(src/include)
@@ -12,8 +15,11 @@ if(NOT pybind11_FOUND)
   return()
 endif()
 
+find_package(Arrow REQUIRED)
+
 include_directories(${pybind11_INCLUDE_DIR})
 include_directories(${PYTHON_INCLUDE_DIRS})
+include_directories(${Arrow_INCLUDE_DIRS})
 
 add_subdirectory(src)
 # this is used for clang-tidy checks
@@ -21,5 +27,5 @@ add_subdirectory(src)
 set(ALL_OBJECT_FILES duckdb_python.cpp ${ALL_OBJECT_FILES})
 
 add_library(python_duckdb ${ALL_OBJECT_FILES})
-target_include_directories(python_duckdb PRIVATE ${PYTHON_INCLUDE_DIRS})
-target_link_libraries(python_duckdb duckdb_static ${PYTHON_LIBRARIES})
+target_include_directories(python_duckdb PRIVATE ${PYTHON_INCLUDE_DIRS} Arrow::arrow_shared)
+target_link_libraries(python_duckdb duckdb_static ${PYTHON_LIBRARIES} Arrow::arrow_shared)
