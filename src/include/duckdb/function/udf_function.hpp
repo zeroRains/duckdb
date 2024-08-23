@@ -8,8 +8,9 @@
 
 #pragma once
 
-#include "duckdb/function/scalar_function.hpp"
 #include "duckdb/function/aggregate_function.hpp"
+#include "duckdb/function/scalar_function.hpp"
+#include "imbridge/execution/plan_prediction_util.hpp"
 
 namespace duckdb {
 
@@ -59,18 +60,22 @@ public:
 
 	template <typename TR, typename... ARGS>
 	inline static void RegisterFunction(const string &name, scalar_function_t udf_function, ClientContext &context,
-	                                    LogicalType varargs = LogicalType(LogicalTypeId::INVALID)) {
+	                                    LogicalType varargs = LogicalType(LogicalTypeId::INVALID),
+	                                    FunctionKind kind = FunctionKind::COMMON,
+	                                    u_int32_t batch_size = DEFAULT_PREDICTION_BATCH_SIZE) {
 		vector<LogicalType> arguments;
 		GetArgumentTypesRecursive<ARGS...>(arguments);
 
 		LogicalType ret_type = GetArgumentType<TR>();
 
-		RegisterFunction(name, arguments, ret_type, std::move(udf_function), context, std::move(varargs));
+		RegisterFunction(name, arguments, ret_type, std::move(udf_function), context, std::move(varargs), kind, batch_size);
 	}
 
 	static void RegisterFunction(string name, vector<LogicalType> args, LogicalType ret_type,
 	                             scalar_function_t udf_function, ClientContext &context,
-	                             LogicalType varargs = LogicalType(LogicalTypeId::INVALID));
+	                             LogicalType varargs = LogicalType(LogicalTypeId::INVALID),
+	                             FunctionKind kind = FunctionKind::COMMON,
+	                             u_int32_t batch_size = DEFAULT_PREDICTION_BATCH_SIZE);
 
 	//--------------------------------- Aggregate UDFs ------------------------------------//
 	template <typename UDF_OP, typename STATE, typename TR, typename TA>
