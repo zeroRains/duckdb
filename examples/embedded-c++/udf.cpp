@@ -39,7 +39,7 @@ int main() {
 	Connection con(db);
 	con.Query("CREATE TABLE data (i DOUBLE, age DOUBLE)");
 	create_data(con);
-	con.Query("SET threads = 1");
+	// con.Query("SET threads = 1");
 	// con.Query("SELECT * FROM data LIMIT 10")->Print();
 	con.CreateVectorizedFunction<double, double, double>("udf_vectorized_int", &udf_tmp<double, 2>, LogicalType::INVALID, FunctionKind::PREDICTION, 2048);
 	clock_t start_time=clock();

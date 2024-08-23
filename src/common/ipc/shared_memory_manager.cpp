@@ -17,21 +17,11 @@ SharedMemoryManager::SharedMemoryManager(const std::string &name, ProcessKind ki
 
 template <typename T>
 T *SharedMemoryManager::create_shared_memory_object(const std::string &name, const size_t size) {
-	if (kind != ProcessKind::CLIENT) {
-		throw std::runtime_error(
-		    "[Shared Memory] create_error! It can create shared memory object when process kind is CLIENT");
-		return nullptr;
-	}
 	return segment.construct<T>((channel_name + name).c_str())[size]();
 }
 
 template <typename T>
 std::pair<T *, size_t> SharedMemoryManager::open_shared_memory_object(const std::string &name) {
-	if (kind != ProcessKind::SERVER) {
-		throw std::runtime_error(
-		    "[Shared Memory] open_error! It can open shared memory object when process kind is SERVER");
-		return {};
-	}
 	return segment.find<T>((channel_name + name).c_str());
 }
 

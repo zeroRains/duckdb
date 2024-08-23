@@ -1,3 +1,4 @@
+#include "duckdb/common/arrow/arrow_transform_util.hpp"
 #include "duckdb/execution/expression_executor.hpp"
 #include "duckdb/planner/expression/bound_function_expression.hpp"
 
@@ -75,8 +76,40 @@ void ExpressionExecutor::Execute(const BoundFunctionExpression &expr, Expression
 	arguments.Verify();
 
 	D_ASSERT(expr.function.function);
-	expr.function.function(arguments, *state, result);
+	if (expr.function.bridge_info->kind == FunctionKind::PREDICTION) {
+		std::string shm_id = imbridge::thread_id_to_string(std::this_thread::get_id());
+		imbridge::SharedMemoryManager shm(shm_id, imbridge::ProcessKind::CLIENT);
 
+		auto table = imbridge::ConvertDataChunkToArrowTable(arguments, context->GetClientProperties());
+		imbridge::WriteArrowTableToSharedMemory(table, shm);
+
+		shm.sem_server->post();
+		shm.sem_client->wait();
+
+		auto my_table = imbridge::ReadArrowTableFromSharedMemory(shm, imbridge::OUTPUT_TABLE);
+
+		for (int i = 0; i < my_table->num_columns(); i++) {
+			std::shared_ptr<arrow::ChunkedArray> column = my_table->column(i);
+			std::cout << my_table->field(i)->name() << ": ";
+			for (int chunk_idx = 0; chunk_idx < column->num_chunks(); chunk_idx++) {
+				auto chunk = std::static_pointer_cast<arrow::DoubleArray>(column->chunk(chunk_idx));
+				for (int j = 0; j < chunk->length(); j++) {
+					if (j > 10)
+						break;
+					std::cout << chunk->Value(j) << " ";
+				}
+			}
+			std::cout << std::endl;
+		}
+
+		shm.destroy_shared_memory_object<char>(imbridge::INPUT_TABLE);
+		shm.destroy_shared_memory_object<char>(imbridge::OUTPUT_TABLE);
+
+		// IMBRIDGE TODO: write result to datachunk
+		expr.function.function(arguments, *state, result);
+	} else {
+		expr.function.function(arguments, *state, result);
+	}
 	VerifyNullHandling(expr, arguments, result);
 	D_ASSERT(result.GetType() == expr.return_type);
 }
