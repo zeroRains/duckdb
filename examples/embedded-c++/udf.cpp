@@ -16,7 +16,7 @@ static void udf_tmp(DataChunk &input, ExpressionState &state, Vector &result) {
 	auto tmp_data2 = ConstantVector::GetData<TYPE>(input.data[1]);
 	memset(result_data, std::numeric_limits<TYPE>::min(), input.size() * sizeof(TYPE));
 	for (idx_t i = 0; i < input.size(); i++) {
-		result_data[i] = 1 * tmp_data1[i] + 0 * tmp_data2[i];
+		result_data[i] = 1 * tmp_data1[i] + 1 * tmp_data2[i];
 	}
 }
 
@@ -41,7 +41,7 @@ int main() {
 	create_data(con);
 	con.Query("SET threads = 1");
 	// con.Query("SELECT * FROM data LIMIT 10")->Print();
-	con.CreateVectorizedFunction<double, double, double>("udf_vectorized_int", &udf_tmp<double, 2>, LogicalType::INVALID, FunctionKind::PREDICTION, 3333);
+	con.CreateVectorizedFunction<double, double, double>("udf_vectorized_int", &udf_tmp<double, 2>, LogicalType::INVALID, FunctionKind::PREDICTION, 2048);
 	clock_t start_time=clock();
 	con.Query("SELECT i, udf_vectorized_int(i, age) FROM data")->Print();
 	clock_t end_time=clock();
