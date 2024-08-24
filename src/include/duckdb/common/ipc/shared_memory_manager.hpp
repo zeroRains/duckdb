@@ -20,6 +20,8 @@ namespace imbridge {
 
 enum class ProcessKind : u_int8_t { CLIENT = 0, SERVER = 1 };
 
+const std::string START_SERVER_COMMAND = "/root/workspace/duckdb/examples/embedded-c++/server_start.sh  ";
+
 static std::string thread_id_to_string(std::thread::id id) {
 	std::ostringstream ss;
 	ss << id;

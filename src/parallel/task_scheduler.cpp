@@ -25,7 +25,7 @@ struct SchedulerThread {
 	    : thread_id(thread_id), internal_thread(std::move(thread_p)),
 	      shared_memory_manager(thread_id, duckdb::imbridge::ProcessKind::CLIENT) {
 		// sytem call the server process execute
-		std::string command = "/root/workspace/duckdb/examples/embedded-c++/build/udf_server  " + thread_id;
+		std::string command = imbridge::START_SERVER_COMMAND + thread_id;
 		std::thread t([command]() { std::system(command.c_str()); });
 		t.detach();
 	}
@@ -41,7 +41,7 @@ struct MainChannelThread {
 	explicit MainChannelThread(std::string thread_id)
 	    : thread_id(thread_id), shared_memory_manager(thread_id, duckdb::imbridge::ProcessKind::CLIENT) {
 		// sytem call the server process execute
-		std::string command = "/root/workspace/duckdb/examples/embedded-c++/build/udf_server  " + thread_id;
+		std::string command = imbridge::START_SERVER_COMMAND + thread_id;
 		std::thread t([command]() { std::system(command.c_str()); });
 		t.detach();
 	}
