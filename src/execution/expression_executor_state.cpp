@@ -11,14 +11,28 @@ void ExpressionState::AddChild(Expression *expr) {
 	child_states.push_back(ExpressionExecutor::InitializeState(*expr, root));
 }
 
-void ExpressionState::Finalize(bool empty) {
+void ExpressionState::Finalize(bool empty, idx_t capacity) {
 	if (types.empty()) {
 		return;
 	}
 	if (empty) {
 		intermediate_chunk.InitializeEmpty(types);
+		intermediate_chunk.SetCapacity(capacity);
 	} else {
-		intermediate_chunk.Initialize(GetAllocator(), types);
+		intermediate_chunk.Initialize(GetAllocator(), types, capacity);
+	}
+}
+
+void ExpressionState::UpdateCapacity(idx_t capacity) {
+	if (capacity > intermediate_chunk.GetCapacity()) {
+
+        for (idx_t i = 0; i < intermediate_chunk.ColumnCount(); i++) {
+			intermediate_chunk.data[i].Resize(0, capacity);
+		}
+		intermediate_chunk.SetCapacity(capacity);
+	}
+	for (auto &state: child_states) {
+		state->UpdateCapacity(capacity);
 	}
 }
 

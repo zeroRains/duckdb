@@ -9,7 +9,7 @@ namespace imbridge {
 
 #define NEXT_EXE_ADAPT(STATE, X, SIZE, Y, Z, IF_RET_TYPE, ELSE_RET_TYPE, RET) \
 auto &batch = X->NextBatch(SIZE); \
-X->ExternalChunkReset(*Y); \
+X->ExternalProjectionReset(*Y, STATE.executor); \
 STATE.executor.Execute(batch, *Y); \
 if (Y->size() > STANDARD_VECTOR_SIZE) { \
     X->BatchAdapting(*Y, Z, STATE.base_offset); \
@@ -25,7 +25,7 @@ class PredictionProjectionState : public PredictionState {
 public:
 	explicit PredictionProjectionState(ExecutionContext &context, const vector<unique_ptr<Expression>> &expressions,
     const vector<LogicalType> &input_types, idx_t prediction_size = INITIAL_PREDICTION_SIZE, idx_t buffer_capacity = DEFAULT_RESERVED_CAPACITY)
-	    : PredictionState(context, input_types, prediction_size, buffer_capacity), executor(context.client, expressions){
+	    : PredictionState(context, input_types, prediction_size, buffer_capacity), executor(context.client, expressions, buffer_capacity){
 			output_buffer = make_uniq<DataChunk>();
             vector<LogicalType> output_types;
 

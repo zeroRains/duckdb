@@ -19,7 +19,7 @@ static void udf_tmp(DataChunk &input, ExpressionState &state, Vector &result) {
 	}
 }
 
-void create_data(Connection &con, int n = 10000) {
+void create_data(Connection &con, int n = 4096) {
 	std::stringstream ss;
 	ss << "INSERT INTO data VALUES (1, 10)";
 	for (int i = 2; i <= n; i++) {

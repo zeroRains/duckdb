@@ -73,6 +73,12 @@ public:
 	inline void SetCapacity(idx_t capacity_p) {
 		this->capacity = capacity_p;
 	}
+
+	inline idx_t GetCapacity() {
+		return this->capacity;
+	}
+
+
 	inline void SetCapacity(const DataChunk &other) {
 		SetCapacity(other.capacity);
 	}

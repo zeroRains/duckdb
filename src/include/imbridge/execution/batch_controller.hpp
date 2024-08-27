@@ -6,6 +6,8 @@
 
 namespace duckdb {
 
+class ExpressionExecutor;
+
 namespace imbridge {
 
 enum class BatchControllerState: uint8_t { EMPTY, SLICING, BUFFERRING };
@@ -25,8 +27,8 @@ public:
     void SetState(BatchControllerState new_state);
     idx_t GetSize();
 public:
-    // helper method for external chunk reset
-    void ExternalChunkReset(DataChunk &input);
+    // helper method for external projection state reset
+    void ExternalProjectionReset(DataChunk &input, ExpressionExecutor &executor);
     // helper method for batch adpater, keep the output batch size <= STANDARD_VECTOR_SIZE
     void BatchAdapting(DataChunk &input, DataChunk &output, idx_t start_offset, idx_t size=STANDARD_VECTOR_SIZE);
 
