@@ -28,7 +28,8 @@ class PredictionProjectionState : public PredictionState {
 public:
 	explicit PredictionProjectionState(ExecutionContext &context, const vector<unique_ptr<Expression>> &expressions,
     const vector<LogicalType> &input_types, idx_t prediction_size = INITIAL_PREDICTION_SIZE, bool adaptive = false, idx_t buffer_capacity = DEFAULT_RESERVED_CAPACITY)
-	    : PredictionState(context, input_types, prediction_size, buffer_capacity), executor(context.client, expressions, buffer_capacity), tuner(INITIAL_PREDICTION_SIZE, adaptive){
+	    : PredictionState(context, input_types, prediction_size, buffer_capacity),
+         executor(context.client, expressions, buffer_capacity), tuner(INITIAL_PREDICTION_SIZE, adaptive){
 			output_buffer = make_uniq<DataChunk>();
             vector<LogicalType> output_types;
 
@@ -69,7 +70,7 @@ OperatorResultType PhysicalPredictionProjection::Execute(ExecutionContext &conte
     auto &padded = state.padded;
     auto &output_left = state.output_left;
     auto &base_offset = state.base_offset;
-    idx_t batch_size = state.prediction_size;
+    idx_t &batch_size = state.prediction_size;
 
     auto ret = OperatorResultType::HAVE_MORE_OUTPUT;
 

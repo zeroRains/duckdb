@@ -10,9 +10,7 @@ class AdaptiveBatchTuner {
 public:
     explicit AdaptiveBatchTuner(idx_t init_batch_size, bool adaptive = false);
 
-    idx_t GetBatchSize() {
-        return batch_size;
-    }
+    idx_t GetBatchSize();
 
     void StartProfile();
     void EndProfile();

@@ -10,6 +10,10 @@ namespace duckdb
         static const double default_stand_factor = 0.1;
         static const idx_t default_stand_rounds = 10;
 
+        idx_t AdaptiveBatchTuner::GetBatchSize() {
+            return batch_size;
+        }
+
         AdaptiveBatchTuner::AdaptiveBatchTuner(idx_t init_batch_size, bool adaptive): batch_size(init_batch_size) {
             if (adaptive) {
                 prev_batch_size = batch_size;
@@ -35,7 +39,6 @@ namespace duckdb
             double duration_ms = std::chrono::duration<double, std::milli>(stop_time - start_time).count();
 
             double current_speed = batch_size/duration_ms;
-            prediction_speed = current_speed;
             if (!stop) {
                 if (current_speed > (1 + stand_factor) * prediction_speed) {
                     prev_batch_size = batch_size;
@@ -54,6 +57,7 @@ namespace duckdb
                     }
                 }
             }
+            prediction_speed = current_speed;
         }
 
     } // namespace imbridge
