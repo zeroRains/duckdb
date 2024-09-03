@@ -24,3 +24,6 @@ target_link_libraries(udf duckdb)
 
 add_executable(udf_server udf_server.cpp)
 target_link_libraries(udf_server rt duckdb pthread arrow_python arrow ${PYTHON_LIBRARIES})
+
+add_executable(test_prediction_native test_prediction_native.cpp)
+target_link_libraries(test_prediction_native duckdb)

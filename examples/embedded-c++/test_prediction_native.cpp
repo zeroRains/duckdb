@@ -1,10 +1,7 @@
-
 #include "duckdb.hpp"
 
 #include <iostream>
 #include <string>
-#include <thread>
-#include <chrono>
 
 using namespace duckdb;
 using namespace imbridge;
@@ -17,12 +14,13 @@ static void udf_tmp(DataChunk &input, ExpressionState &state, Vector &result) {
 	auto tmp_data1 = ConstantVector::GetData<TYPE>(input.data[0]);
 	auto tmp_data2 = ConstantVector::GetData<TYPE>(input.data[1]);
 	memset(result_data, std::numeric_limits<TYPE>::min(), input.size() * sizeof(TYPE));
+	std::cout<<input.size()<<std::endl;
 	for (idx_t i = 0; i < input.size(); i++) {
-		result_data[i] = 1 * tmp_data1[i] + 1 * tmp_data2[i];
+		result_data[i] = 1 * tmp_data1[i] + 0 * tmp_data2[i];
 	}
 }
 
-void create_data(Connection &con, int n = 5000) {
+void create_data(Connection &con, int n = 10000) {
 	std::stringstream ss;
 	ss << "INSERT INTO data VALUES (1, 10)";
 	for (int i = 2; i <= n; i++) {
@@ -41,10 +39,9 @@ int main() {
 	Connection con(db);
 	con.Query("CREATE TABLE data (i DOUBLE, age DOUBLE)");
 	create_data(con);
-	con.Query("SET threads = 3");
-	// std::this_thread::sleep_for(std::chrono::seconds(5));
+	con.Query("SET threads = 1");
 	// con.Query("SELECT * FROM data LIMIT 10")->Print();
-	con.CreateVectorizedFunction<double, double, double>("udf_vectorized_int", &udf_tmp<double, 2>, LogicalType::INVALID, FunctionKind::PREDICTION, 4095);
+	con.CreateVectorizedFunction<double, double, double>("udf_vectorized_int", &udf_tmp<double, 2>, LogicalType::INVALID, FunctionKind::PREDICTION, 0);
 	clock_t start_time=clock();
 	con.Query("SELECT i, udf_vectorized_int(i, age) FROM data")->Print();
 	clock_t end_time=clock();

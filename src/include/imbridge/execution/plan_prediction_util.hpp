@@ -51,7 +51,7 @@ private:
 
 namespace imbridge {
 
-#define DEFAULT_RESERVED_CAPACITY STANDARD_VECTOR_SIZE*2
+#define DEFAULT_RESERVED_CAPACITY STANDARD_VECTOR_SIZE*4
 #define INITIAL_PREDICTION_SIZE DEFAULT_PREDICTION_BATCH_SIZE
 
 class PredictionState : public OperatorState {

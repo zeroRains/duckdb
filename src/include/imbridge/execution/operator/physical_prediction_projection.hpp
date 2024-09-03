@@ -7,9 +7,6 @@ namespace duckdb {
 
 namespace imbridge {
 
-#define DEFAULT_RESERVED_CAPACITY STANDARD_VECTOR_SIZE*2
-#define INITIAL_PREDICTION_SIZE DEFAULT_PREDICTION_BATCH_SIZE
-
 class PhysicalPredictionProjection : public PhysicalOperator {
 public:
 	static constexpr const PhysicalOperatorType TYPE = PhysicalOperatorType::PREDICTION_PROJECTION;

@@ -21,4 +21,5 @@ class MyProcess:
         # print("2333")
         print(self.name)
         print(self.age)
+        print(table.num_rows)
         return process_table(table)

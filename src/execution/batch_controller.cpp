@@ -1,4 +1,5 @@
 #include "imbridge/execution/batch_controller.hpp"
+#include "duckdb/execution/expression_executor.hpp"
 #include "duckdb/common/typedefs.hpp"
 #include "duckdb/common/vector_operations/vector_operations.hpp"
 
@@ -167,6 +168,7 @@ namespace imbridge {
         state = BatchControllerState::EMPTY;
         store.Initialize(allocator, types, capacity);
         sliced.InitializeEmpty(types);
+        sliced.capacity = capacity;
 
         for (idx_t i = 0; i < store.ColumnCount(); i++) {
 
@@ -181,6 +183,8 @@ namespace imbridge {
         high_offset = base_offset;
         state = BatchControllerState::EMPTY;
         sliced.Reset();
+        sliced.capacity = store.capacity;
+        
         if (store.data.empty() || store.vector_caches.empty()) {
             return;
         }
@@ -214,6 +218,7 @@ namespace imbridge {
 	            AssignSharedPointer(sliced.data[i].auxiliary, store.data[i].auxiliary);
             }
             store.capacity = new_capacity;
+            sliced.capacity = new_capacity;
         }
         for (idx_t i = 0; i < store.ColumnCount(); i++) {
         	D_ASSERT(store.data[i].GetVectorType() == VectorType::FLAT_VECTOR);
@@ -252,7 +257,7 @@ namespace imbridge {
     }
 
     // helper methods
-    void BatchController::ExternalChunkReset(DataChunk &input) {
+    void BatchController::ExternalProjectionReset(DataChunk &input, ExpressionExecutor &executor) {
         for (idx_t i = 0; i < input.ColumnCount(); i++) {
             input.data[i].ResetFromCache(input.vector_caches[i]);
         }
@@ -261,7 +266,13 @@ namespace imbridge {
             for (idx_t i = 0; i < input.ColumnCount(); i++) {
                 input.data[i].Resize(0, new_capacity);
             }
-            input.capacity = store.capacity; 
+            input.capacity = store.capacity;
+
+            // resize all the intermediate chunks in executor
+            auto &executor_states = executor.GetStates();
+            for(auto &executor_state: executor_states) {
+                executor_state->root_state->UpdateCapacity(store.capacity);
+            }
         }
     }
 

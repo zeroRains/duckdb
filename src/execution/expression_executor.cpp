@@ -29,6 +29,14 @@ ExpressionExecutor::ExpressionExecutor(ClientContext &context, const vector<uniq
 	}
 }
 
+ExpressionExecutor::ExpressionExecutor(ClientContext &context, const vector<unique_ptr<Expression>> &exprs, idx_t capacity)
+    : ExpressionExecutor(context) {
+	D_ASSERT(exprs.size() > 0);
+	for (auto &expr : exprs) {
+		AddExpression(*expr, capacity);
+	}
+}
+
 ExpressionExecutor::ExpressionExecutor(const vector<unique_ptr<Expression>> &exprs) : context(nullptr) {
 	D_ASSERT(exprs.size() > 0);
 	for (auto &expr : exprs) {
@@ -54,17 +62,17 @@ Allocator &ExpressionExecutor::GetAllocator() {
 	return context ? Allocator::Get(*context) : Allocator::DefaultAllocator();
 }
 
-void ExpressionExecutor::AddExpression(const Expression &expr) {
+void ExpressionExecutor::AddExpression(const Expression &expr, idx_t capacity) {
 	expressions.push_back(&expr);
 	auto state = make_uniq<ExpressionExecutorState>();
-	Initialize(expr, *state);
+	Initialize(expr, *state, capacity);
 	state->Verify();
 	states.push_back(std::move(state));
 }
 
-void ExpressionExecutor::Initialize(const Expression &expression, ExpressionExecutorState &state) {
+void ExpressionExecutor::Initialize(const Expression &expression, ExpressionExecutorState &state, idx_t capacity) {
 	state.executor = this;
-	state.root_state = InitializeState(expression, state);
+	state.root_state = InitializeState(expression, state, capacity);
 }
 
 void ExpressionExecutor::Execute(DataChunk *input, DataChunk &result) {
@@ -140,28 +148,28 @@ void ExpressionExecutor::Verify(const Expression &expr, Vector &vector, idx_t co
 }
 
 unique_ptr<ExpressionState> ExpressionExecutor::InitializeState(const Expression &expr,
-                                                                ExpressionExecutorState &state) {
+                                                                ExpressionExecutorState &state, idx_t capacity) {
 	switch (expr.expression_class) {
 	case ExpressionClass::BOUND_REF:
-		return InitializeState(expr.Cast<BoundReferenceExpression>(), state);
+		return InitializeState(expr.Cast<BoundReferenceExpression>(), state, capacity);
 	case ExpressionClass::BOUND_BETWEEN:
-		return InitializeState(expr.Cast<BoundBetweenExpression>(), state);
+		return InitializeState(expr.Cast<BoundBetweenExpression>(), state, capacity);
 	case ExpressionClass::BOUND_CASE:
-		return InitializeState(expr.Cast<BoundCaseExpression>(), state);
+		return InitializeState(expr.Cast<BoundCaseExpression>(), state, capacity);
 	case ExpressionClass::BOUND_CAST:
-		return InitializeState(expr.Cast<BoundCastExpression>(), state);
+		return InitializeState(expr.Cast<BoundCastExpression>(), state, capacity);
 	case ExpressionClass::BOUND_COMPARISON:
-		return InitializeState(expr.Cast<BoundComparisonExpression>(), state);
+		return InitializeState(expr.Cast<BoundComparisonExpression>(), state, capacity);
 	case ExpressionClass::BOUND_CONJUNCTION:
-		return InitializeState(expr.Cast<BoundConjunctionExpression>(), state);
+		return InitializeState(expr.Cast<BoundConjunctionExpression>(), state, capacity);
 	case ExpressionClass::BOUND_CONSTANT:
-		return InitializeState(expr.Cast<BoundConstantExpression>(), state);
+		return InitializeState(expr.Cast<BoundConstantExpression>(), state, capacity);
 	case ExpressionClass::BOUND_FUNCTION:
-		return InitializeState(expr.Cast<BoundFunctionExpression>(), state);
+		return InitializeState(expr.Cast<BoundFunctionExpression>(), state, capacity);
 	case ExpressionClass::BOUND_OPERATOR:
-		return InitializeState(expr.Cast<BoundOperatorExpression>(), state);
+		return InitializeState(expr.Cast<BoundOperatorExpression>(), state, capacity);
 	case ExpressionClass::BOUND_PARAMETER:
-		return InitializeState(expr.Cast<BoundParameterExpression>(), state);
+		return InitializeState(expr.Cast<BoundParameterExpression>(), state, capacity);
 	default:
 		throw InternalException("Attempting to initialize state of expression of unknown type!");
 	}
