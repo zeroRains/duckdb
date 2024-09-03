@@ -3,6 +3,7 @@
 #include "duckdb/common/arrow/arrow_appender.hpp"
 #include "duckdb/common/arrow/arrow_converter.hpp"
 
+#include <arrow/array/concatenate.h>
 #include <arrow/c/abi.h>
 #include <arrow/c/bridge.h>
 #include <arrow/c/helpers.h>
@@ -94,6 +95,18 @@ std::shared_ptr<arrow::Table> ReadArrowTableFromSharedMemory(SharedMemoryManager
 
 	std::shared_ptr<arrow::Table> table = arrow::Table::FromRecordBatches(reader->schema(), batches).ValueOrDie();
 	return table;
+}
+
+void  ConvertArrowTableResultToVector(std::shared_ptr<arrow::Table> &table, Vector &res) {
+	// As the duckdb_python_udf, UDF only support one column return.
+	// only support directyly conver
+	std::shared_ptr<arrow::ChunkedArray> column = table->column(0);
+	std::vector<std::shared_ptr<arrow::Array>> chunks = column->chunks();
+	std::shared_ptr<arrow::Array> array = arrow::Concatenate(chunks).ValueOrDie();
+	ArrowArray c_array;
+	arrow::Status status = arrow::ExportArray(*array, &c_array);
+	auto data_ptr = (data_ptr_t)c_array.buffers[1];
+	FlatVector::SetData(res, data_ptr);
 }
 
 } // namespace imbridge

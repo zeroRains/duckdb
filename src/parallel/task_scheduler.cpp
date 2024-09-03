@@ -23,7 +23,7 @@ struct SchedulerThread {
 #ifndef DUCKDB_NO_THREADS
 	explicit SchedulerThread(unique_ptr<thread> thread_p, std::string thread_id)
 	    : thread_id(thread_id), internal_thread(std::move(thread_p)),
-	      shared_memory_manager(thread_id, duckdb::imbridge::ProcessKind::CLIENT) {
+	      shared_memory_manager(thread_id, duckdb::imbridge::ProcessKind::MANAGER) {
 		// sytem call the server process execute
 		std::string command = imbridge::START_SERVER_COMMAND + thread_id;
 		std::thread t([command]() { std::system(command.c_str()); });
@@ -39,7 +39,7 @@ struct SchedulerThread {
 struct MainChannelThread {
 #ifndef DUCKDB_NO_THREADS
 	explicit MainChannelThread(std::string thread_id)
-	    : thread_id(thread_id), shared_memory_manager(thread_id, duckdb::imbridge::ProcessKind::CLIENT) {
+	    : thread_id(thread_id), shared_memory_manager(thread_id, duckdb::imbridge::ProcessKind::MANAGER) {
 		// sytem call the server process execute
 		std::string command = imbridge::START_SERVER_COMMAND + thread_id;
 		std::thread t([command]() { std::system(command.c_str()); });

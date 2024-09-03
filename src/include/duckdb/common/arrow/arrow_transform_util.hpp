@@ -17,7 +17,6 @@
 
 namespace bi = boost::interprocess;
 
-
 namespace duckdb {
 namespace imbridge {
 
@@ -26,10 +25,13 @@ const std::string OUTPUT_TABLE = "OUTPUT_TABLE";
 
 std::shared_ptr<arrow::Table> ConvertDataChunkToArrowTable(DataChunk &input, const ClientProperties &options);
 
-void WriteArrowTableToSharedMemory(std::shared_ptr<arrow::Table> &table, SharedMemoryManager &shm, const std::string &shm_id = INPUT_TABLE);
+void WriteArrowTableToSharedMemory(std::shared_ptr<arrow::Table> &table, SharedMemoryManager &shm,
+                                   const std::string &shm_id = INPUT_TABLE);
 
-std::shared_ptr<arrow::Table> ReadArrowTableFromSharedMemory(SharedMemoryManager &shm, const std::string &shm_id = OUTPUT_TABLE);
+std::shared_ptr<arrow::Table> ReadArrowTableFromSharedMemory(SharedMemoryManager &shm,
+                                                             const std::string &shm_id = OUTPUT_TABLE);
 
+void ConvertArrowTableResultToVector(std::shared_ptr<arrow::Table> &table, Vector &res);
 
 } // namespace imbridge
 } // namespace duckdb

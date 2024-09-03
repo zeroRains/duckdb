@@ -89,25 +89,12 @@ void ExpressionExecutor::Execute(const BoundFunctionExpression &expr, Expression
 
 		auto my_table = imbridge::ReadArrowTableFromSharedMemory(shm, imbridge::OUTPUT_TABLE);
 
-		for (int i = 0; i < my_table->num_columns(); i++) {
-			std::shared_ptr<arrow::ChunkedArray> column = my_table->column(i);
-			std::cout << my_table->field(i)->name() << ": ";
-			for (int chunk_idx = 0; chunk_idx < column->num_chunks(); chunk_idx++) {
-				auto chunk = std::static_pointer_cast<arrow::DoubleArray>(column->chunk(chunk_idx));
-				for (int j = 0; j < chunk->length(); j++) {
-					if (j > 10)
-						break;
-					std::cout << chunk->Value(j) << " ";
-				}
-			}
-			std::cout << std::endl;
-		}
 
 		shm.destroy_shared_memory_object<char>(imbridge::INPUT_TABLE);
 		shm.destroy_shared_memory_object<char>(imbridge::OUTPUT_TABLE);
 
-		// IMBRIDGE TODO: write result to datachunk
-		expr.function.function(arguments, *state, result);
+		// write result to datachunk
+		imbridge:: ConvertArrowTableResultToVector(my_table, result);
 	} else {
 		expr.function.function(arguments, *state, result);
 	}

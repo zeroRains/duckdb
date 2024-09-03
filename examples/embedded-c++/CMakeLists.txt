@@ -23,4 +23,4 @@ add_executable(udf udf.cpp)
 target_link_libraries(udf duckdb)
 
 add_executable(udf_server udf_server.cpp)
-target_link_libraries(udf_server duckdb pthread arrow_python arrow ${PYTHON_LIBRARIES})
+target_link_libraries(udf_server rt duckdb pthread arrow_python arrow ${PYTHON_LIBRARIES})

@@ -5,7 +5,7 @@ namespace imbridge {
 
 SharedMemoryManager::SharedMemoryManager(const std::string &name, ProcessKind kind, const size_t size)
     : channel_name(name), kind(kind), size(size) {
-	if (kind == ProcessKind::CLIENT) {
+	if (kind == ProcessKind::CLIENT || kind == ProcessKind::MANAGER) {
 		segment = bi::managed_shared_memory(bi::open_or_create, channel_name.c_str(), size);
 	} else {
 		segment = bi::managed_shared_memory(bi::open_only, channel_name.c_str());

@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <string>
+#include <thread>
+#include <chrono>
 
 using namespace duckdb;
 using namespace imbridge;
@@ -20,7 +22,7 @@ static void udf_tmp(DataChunk &input, ExpressionState &state, Vector &result) {
 	}
 }
 
-void create_data(Connection &con, int n = 10000) {
+void create_data(Connection &con, int n = 5000) {
 	std::stringstream ss;
 	ss << "INSERT INTO data VALUES (1, 10)";
 	for (int i = 2; i <= n; i++) {
@@ -39,7 +41,8 @@ int main() {
 	Connection con(db);
 	con.Query("CREATE TABLE data (i DOUBLE, age DOUBLE)");
 	create_data(con);
-	// con.Query("SET threads = 1");
+	con.Query("SET threads = 3");
+	// std::this_thread::sleep_for(std::chrono::seconds(5));
 	// con.Query("SELECT * FROM data LIMIT 10")->Print();
 	con.CreateVectorizedFunction<double, double, double>("udf_vectorized_int", &udf_tmp<double, 2>, LogicalType::INVALID, FunctionKind::PREDICTION, 2048);
 	clock_t start_time=clock();
