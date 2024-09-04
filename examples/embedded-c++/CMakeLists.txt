@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 2.8.12...3.29)
 project(example-c++)
 
-set(PYTHON_INCLUDE_DIRS /root/miniconda3/envs/duckdb/include/python3.9)
-set(PYTHON_LIBRARIES /root/miniconda3/envs/duckdb/lib/libpython3.9.so)
-set(ARROW_PYTHON_INCLUDE_DIR /root/miniconda3/envs/duckdb/lib/python3.9/site-packages/pyarrow/include)
-set(ARROW_PYTHON_LIB_DIR /root/miniconda3/envs/duckdb/lib/python3.9/site-packages/pyarrow)
+set(PYTHON_INCLUDE_DIRS /root/miniconda3/envs/tpc_ai/include/python3.9)
+set(PYTHON_LIBRARIES /root/miniconda3/envs/tpc_ai/lib/libpython3.9.so)
+set(ARROW_PYTHON_INCLUDE_DIR /root/miniconda3/envs/tpc_ai/lib/python3.9/site-packages/pyarrow/include)
+set(ARROW_PYTHON_LIB_DIR /root/miniconda3/envs/tpc_ai/lib/python3.9/site-packages/pyarrow)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -15,6 +15,8 @@ link_directories(../../build/src)
 link_directories(${ARROW_PYTHON_LIB_DIR})
 link_directories(${PYTHON_LIBRARIES})
 
+
+add_subdirectory(imbridge_test)
 
 add_executable(example main.cpp)
 target_link_libraries(example duckdb)
