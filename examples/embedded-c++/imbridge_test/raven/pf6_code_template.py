@@ -1,4 +1,3 @@
-import pickle
 import pyarrow as pa
 import numpy as np
 import pandas as pd

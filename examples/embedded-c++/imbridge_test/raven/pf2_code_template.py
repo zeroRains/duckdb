@@ -1,5 +1,4 @@
-import pickle
-
+import pyarrow as pa
 import numpy as np
 import pandas as pd
 import onnxruntime as ort
@@ -34,4 +33,6 @@ class MyProcess:
             }
             outputs = self.expedia_onnx_session.run([self.expedia_label.name], infer_batch)
             return outputs[0]
-        return udf_wrap(*table)
+        res = udf_wrap(*table)
+        df = pd.DataFrame(res)
+        return pa.Table.from_pandas(df)
