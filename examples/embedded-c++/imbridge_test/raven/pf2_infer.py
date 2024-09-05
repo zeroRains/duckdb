@@ -10,7 +10,7 @@ import time
 from tqdm import tqdm
 # hand_type = "udf"
 hand_type = "special"
-name = "pf1"
+name = "pf2"
 
 root_data_path = ""
 

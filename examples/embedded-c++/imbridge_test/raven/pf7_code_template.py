@@ -4,19 +4,19 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import StandardScaler
-from catboost import CatBoostClassifier
+import lightgbm as lgb
 
     
 class MyProcess:
     def __init__(self):
         # load model part
         root_model_path = "/root/workspace/duckdb/examples/embedded-c++/imbridge_test/data/test_raven"
-        scaler_path = f'{root_model_path}/Credit_Card/creditcard_standard_scale_model.pkl'
-        model_path = f'{root_model_path}/Credit_Card/creditcard_catboost_gb.cbm'
-        with open(scaler_path, 'rb') as f:
+        self.scaler_path = f'{root_model_path}/Credit_Card/creditcard_standard_scale_model.pkl'
+        self.model_path = f'{root_model_path}/Credit_Card/creditcard_lgb_model.txt'
+        with open(self.scaler_path, 'rb') as f:
             self.scaler = pickle.load(f)
-        self.model = CatBoostClassifier()
-        self.model.load_model(model_path)
+        self.model = lgb.Booster(model_file=self.model_path)
+
 
     def process(self, table):
         # print(table.num_rows)

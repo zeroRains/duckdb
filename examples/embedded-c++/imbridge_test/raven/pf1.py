@@ -13,7 +13,6 @@ from tqdm import tqdm
 hand_type = "special"
 name = "pf1"
 
-root_data_path = ""
 
 con = duckdb.connect(
     "/root/workspace/duckdb/examples/embedded-c++/imbridge_test/db/db_raven.db")
