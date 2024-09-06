@@ -77,7 +77,7 @@ void ExpressionExecutor::Execute(const BoundFunctionExpression &expr, Expression
 	arguments.Verify();
 
 	D_ASSERT(expr.function.function);
-	if (expr.function.bridge_info->kind == FunctionKind::PREDICTION) {
+	if (expr.function.bridge_info && expr.function.bridge_info->kind == FunctionKind::PREDICTION) {
 		std::string shm_id = imbridge::thread_id_to_string(std::this_thread::get_id());
 		imbridge::SharedMemoryManager shm(shm_id, imbridge::ProcessKind::CLIENT);
 
