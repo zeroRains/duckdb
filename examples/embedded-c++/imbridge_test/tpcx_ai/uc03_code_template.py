@@ -67,7 +67,7 @@ class MyProcess:
                 dept = row.department
                 periods = 52
                 try:
-                    current_model, ts_min, ts_max = models.get_model(store, dept)
+                    current_model, ts_min, ts_max = self.model.get_model(store, dept)
                 except KeyError:
                     continue
                 # disable warnings that non-date index is returned from forecast

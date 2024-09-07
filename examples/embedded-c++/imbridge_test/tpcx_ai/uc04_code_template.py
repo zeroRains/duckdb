@@ -1,30 +1,26 @@
 import joblib
-import numpy as np
 import pyarrow as pa
+import numpy as np
 import pandas as pd
-import joblib
-from surprise import SVD
-from surprise import Dataset
-from surprise.reader import Reader
-
+from sklearn import feature_extraction, naive_bayes
+from sklearn.pipeline import Pipeline
+from sklearn.feature_extraction.text import TfidfTransformer
 
 class MyProcess:
     def __init__(self):
         # load model part
         scale = 10
-        name = "uc10"
+        name = "uc04"
         root_model_path = f"/root/workspace/duckdb/examples/embedded-c++/imbridge_test/data/tpcxai_datasets/sf{scale}"
         model_file_name = f"{root_model_path}/model/{name}/{name}.python.model"
         self.model = joblib.load(model_file_name)
 
     def process(self, table):
-        def udf(business_hour_norm, amount_norm):
+        def udf(txt):
             data = pd.DataFrame({
-                'business_hour_norm': business_hour_norm,
-                'amount_norm': amount_norm
+                "text": txt
             })
-            print(data.shape)
-            return self.model.predict(data)
-
+            # print(data.shape)
+            return self.model.predict(data["text"])
         df = pd.DataFrame(udf(*table))
         return pa.Table.from_pandas(df)

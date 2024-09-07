@@ -20,19 +20,6 @@ static void udf_tmp(DataChunk &input, ExpressionState &state, Vector &result) {
 	}
 }
 
-void create_data(Connection &con, int n = 10000) {
-	std::stringstream ss;
-	ss << "INSERT INTO data VALUES (1, 10)";
-	for (int i = 2; i <= n; i++) {
-		ss << ", (";
-		ss << i;
-		ss << ", ";
-		ss << i * 10;
-		ss << ")";
-	}
-	con.Query(ss.str());
-	printf("Finish create!\n");
-}
 
 int main() {
 	printf("?????");
@@ -40,11 +27,15 @@ int main() {
 	Connection con(db);
 	// con.Query("SELECT * FROM data LIMIT 10")->Print();
 	
-	con.CreateVectorizedFunction<double, int64_t, int64_t>("udf", &udf_tmp<double, 2>,
-	                                                     LogicalType::INVALID, FunctionKind::PREDICTION, 4096);
+	con.CreateVectorizedFunction<string_t, int64_t, string_t>("udf", &udf_tmp<double, 2>,
+	                                                     LogicalType::INVALID, FunctionKind::COMMON, 4096);
     
 	std::string sql = R"(
-explain select userID, productID, r, score  from (select userID, productID, score, rank() OVER (PARTITION BY userID ORDER BY score) as r  from (select userID, productID, udf(userID, productID) score  from (select userID, productID  from Product_Rating group by userID, productID))) where r <=10;
+explain analyze  select store, department, udf(store, department) 
+from (select store, department 
+from Order_o Join Lineitem on Order_o.o_order_id = Lineitem.li_order_id
+Join Product on li_product_id=p_product_id 
+group by store,department);
 	)";
 	clock_t start_time = clock();
 	con.Query(sql)->Print();

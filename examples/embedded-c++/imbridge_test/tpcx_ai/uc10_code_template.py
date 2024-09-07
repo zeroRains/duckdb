@@ -23,7 +23,7 @@ class MyProcess:
                 'business_hour_norm': business_hour_norm,
                 'amount_norm': amount_norm
             })
-            print(data.shape)
+            # print(data.shape)
             return self.model.predict(data)
 
         df = pd.DataFrame(udf(*table))

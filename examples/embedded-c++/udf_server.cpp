@@ -24,10 +24,10 @@ int main(int argc, char **argv) {
 	PyGILState_STATE gstate;
 	gstate = PyGILState_Ensure();
 	
-	PyObject *dycacher = PyImport_ImportModule("dycacher");
-    if (!dycacher) {
-        PyErr_Print();
-    }
+	// PyObject *dycacher = PyImport_ImportModule("dycacher");
+    // if (!dycacher) {
+    //     PyErr_Print();
+    // }
 	
 	if (arrow::py::import_pyarrow()) {
 		std::cout
@@ -67,5 +67,7 @@ int main(int argc, char **argv) {
 	}
 	// std::cout << "[Server] udf server " << channel_name << " closed\n";
 	shm_server.sem_client->post();
+	PyGILState_Release(gstate);
+    Py_Finalize();
 	return 0;
 }
