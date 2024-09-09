@@ -24,10 +24,10 @@ int main(int argc, char **argv) {
 	PyGILState_STATE gstate;
 	gstate = PyGILState_Ensure();
 	
-	// PyObject *dycacher = PyImport_ImportModule("dycacher");
-    // if (!dycacher) {
-    //     PyErr_Print();
-    // }
+	PyObject *dycacher = PyImport_ImportModule("dycacher");
+    if (!dycacher) {
+        PyErr_Print();
+    }
 	
 	if (arrow::py::import_pyarrow()) {
 		std::cout
