@@ -30,7 +30,7 @@ static std::string thread_id_to_string(std::thread::id id) {
 
 class SharedMemoryManager {
 public:
-	SharedMemoryManager(const std::string &name, ProcessKind process_kind, const size_t size = 1024 * 1024 * 64);
+	SharedMemoryManager(const std::string &name, ProcessKind process_kind, const size_t size = 1024 * 1024 * 32);
 	~SharedMemoryManager() {
 		if (kind == ProcessKind::MANAGER) {
 			close_server();

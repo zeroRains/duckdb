@@ -84,5 +84,4 @@ class MyProcess:
             return np.array(forecasts)
 
         df = pd.DataFrame(udf(*table))
-        print(df.shape)
         return pa.Table.from_pandas(df)
