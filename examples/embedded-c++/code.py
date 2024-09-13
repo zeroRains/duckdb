@@ -1,17 +1,16 @@
-import pyarrow as pa
+import joblib
 import numpy as np
+import pyarrow as pa
 import pandas as pd
 
 
-    
 class MyProcess:
     def __init__(self):
         # load model part
         pass
 
-
     def process(self, table):
-        # print(table.num_rows)
-        print(table.to_pandas().shape)
-        data = table.to_pandas().values[:, 0]
-        return pa.Table.from_pandas(data)
+        df = table.to_pandas().iloc[:, 0]
+        res = pa.Table.from_pandas(pd.DataFrame(df))
+        print(len(res))
+        return res
