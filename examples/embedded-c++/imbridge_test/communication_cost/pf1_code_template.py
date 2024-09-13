@@ -1,9 +1,12 @@
+import pandas as pd
 import pyarrow as pa
 import numpy as np
-import pandas as pd
 
-
+def process_table(table):
+    data = table.to_pandas().values[:, -3]
+    return pa.Table.from_pandas(data)
     
+
 class MyProcess:
     def __init__(self):
         # load model part
@@ -12,6 +15,4 @@ class MyProcess:
 
     def process(self, table):
         # print(table.num_rows)
-        print(table.to_pandas().shape)
-        data = table.to_pandas().values[:, 0]
-        return pa.Table.from_pandas(data)
+        return process_table(table)

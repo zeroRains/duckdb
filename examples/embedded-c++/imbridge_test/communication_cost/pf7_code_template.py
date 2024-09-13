@@ -12,6 +12,5 @@ class MyProcess:
 
     def process(self, table):
         # print(table.num_rows)
-        print(table.to_pandas().shape)
         data = table.to_pandas().values[:, 0]
         return pa.Table.from_pandas(data)
