@@ -15,7 +15,7 @@ link_directories(../../build/src)
 link_directories(${ARROW_PYTHON_LIB_DIR})
 link_directories(${PYTHON_LIBRARIES})
 
-
+add_subdirectory(imbridge)
 add_subdirectory(imbridge_test)
 
 add_executable(example main.cpp)
@@ -23,9 +23,6 @@ target_link_libraries(example duckdb)
 
 add_executable(udf udf.cpp)
 target_link_libraries(udf duckdb)
-
-add_executable(udf_server udf_server.cpp)
-target_link_libraries(udf_server rt duckdb pthread arrow_python arrow ${PYTHON_LIBRARIES})
 
 add_executable(test_prediction_native test_prediction_native.cpp)
 target_link_libraries(test_prediction_native duckdb)
