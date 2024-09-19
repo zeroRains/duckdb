@@ -4,6 +4,18 @@ echo "_________________________PF1______________________________"
 
 # for i in {1..5}
 # do
+#     echo "local $i" 
+#     /root/miniconda3/envs/tpc_ai/bin/python /root/workspace/duckdb/examples/embedded-c++/imbridge_test/communication_cost/pf1_infer.py udf
+# done
+
+# for i in {1..5}
+# do
+#     echo "local $i" 
+#     /root/miniconda3/envs/tpc_ai/bin/python /root/workspace/duckdb/examples/embedded-c++/imbridge_test/communication_cost/pf1_infer.py origin
+# done
+
+# for i in {1..5}
+# do
 #     echo "spark $i" 
 #     /root/miniconda3/envs/tpc_ai/bin/python /root/workspace/duckdb/examples/embedded-c++/imbridge_test/communication_cost/pf1_sparksql.py udf
 # done
@@ -40,6 +52,20 @@ echo "_________________________PF1______________________________"
 # done
 
 echo "_________________________PF7______________________________"
+
+
+# for i in {1..5}
+# do
+#     echo "local $i" 
+#     /root/miniconda3/envs/tpc_ai/bin/python /root/workspace/duckdb/examples/embedded-c++/imbridge_test/communication_cost/pf7_infer.py udf
+# done
+
+# for i in {1..5}
+# do
+#     echo "local $i" 
+#     /root/miniconda3/envs/tpc_ai/bin/python /root/workspace/duckdb/examples/embedded-c++/imbridge_test/communication_cost/pf7_infer.py origin
+# done
+
 
 # for i in {1..5}
 # do
@@ -80,6 +106,17 @@ echo "_________________________PF7______________________________"
 
 echo "_________________________UC10______________________________"
 
+for i in {1..5}
+do
+    echo "local $i" 
+    /root/miniconda3/envs/tpc_ai/bin/python /root/workspace/duckdb/examples/embedded-c++/imbridge_test/communication_cost/uc10_infer.py udf
+done
+
+for i in {1..5}
+do
+    echo "local $i" 
+    /root/miniconda3/envs/tpc_ai/bin/python /root/workspace/duckdb/examples/embedded-c++/imbridge_test/communication_cost/uc10_infer.py origin
+done
 
 # for i in {1..5}
 # do
@@ -106,14 +143,14 @@ echo "_________________________UC10______________________________"
 # done
 
 
-for i in {1..5}
-do
-    echo "IMLane $i" 
-    /root/workspace/duckdb/examples/embedded-c++/build/imbridge_test/communication_cost/uc10_conmunication udf
-done
+# for i in {1..5}
+# do
+#     echo "IMLane $i" 
+#     /root/workspace/duckdb/examples/embedded-c++/build/imbridge_test/communication_cost/uc10_conmunication udf
+# done
 
-for i in {1..5}
-do
-    echo "IMLane $i" 
-    /root/workspace/duckdb/examples/embedded-c++/build/imbridge_test/communication_cost/uc10_conmunication origin
-done
+# for i in {1..5}
+# do
+#     echo "IMLane $i" 
+#     /root/workspace/duckdb/examples/embedded-c++/build/imbridge_test/communication_cost/uc10_conmunication origin
+# done
