@@ -42,6 +42,7 @@ from Financial_Account join Financial_Transactions on Financial_Account.fa_custo
 		con.Query(sql);
 		clock_t end_time = clock();
 		double t = (double)(end_time - start_time) / CLOCKS_PER_SEC;
+		printf("%d : %lf\n", i + 1, t);
 		result += t;
 		if (flag) {
 			flag = false;
@@ -52,6 +53,8 @@ from Financial_Account join Financial_Transactions on Financial_Account.fa_custo
 			max1 = std::max(max1, t);
 		}
 	}
+	printf("min : %lf\n", min1);
+	printf("max : %lf\n", max1);
 	result = result - min1 - max1;
 	times = times - 2;
 	printf("finished execute %lf s!\n", result / (times * 1.0));

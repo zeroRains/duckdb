@@ -21,6 +21,23 @@ class MyProcess:
 
 
     def process(self, table):
-        res = self.model.predict(table.to_pandas())
-        df = pd.DataFrame(res)
+        def udf(smart_5_raw,
+                smart_10_raw,
+                smart_184_raw,
+                smart_187_raw,
+                smart_188_raw,
+                smart_197_raw,
+                smart_198_raw):
+            data = pd.DataFrame({
+                'smart_5_raw': smart_5_raw,
+                'smart_10_raw': smart_10_raw,
+                'smart_184_raw': smart_184_raw,
+                'smart_187_raw': smart_187_raw,
+                'smart_188_raw': smart_188_raw,
+                'smart_197_raw': smart_197_raw,
+                'smart_198_raw': smart_198_raw
+            })
+            # print(data.shape)
+            return self.model.predict(data)
+        df = pd.DataFrame(udf(*table))
         return pa.Table.from_pandas(df)

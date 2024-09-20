@@ -17,8 +17,11 @@ class MyProcess:
         self.model = joblib.load(model_file_name)
 
     def process(self, table):
-        # print(table.num_rows)
-        data = table.to_pandas()
-        res = self.model.predict(data)
+        data = table.to_pandas().values
+        feat = pd.DataFrame({
+            'return_ratio': data[:, 0],
+            'frequency': data[:, 1]
+        })
+        res = self.model.predict(feat)
         df = pd.DataFrame(res)
         return pa.Table.from_pandas(df)

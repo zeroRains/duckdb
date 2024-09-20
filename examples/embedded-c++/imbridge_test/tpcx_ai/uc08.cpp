@@ -187,6 +187,8 @@ join Product on li_product_id = Product.p_product_id
 			max1 = std::max(max1, t);
 		}
 	}
+	printf("min : %lf\n", min1);
+	printf("max : %lf\n", max1);
 	result = result - min1 - max1;
 	times = times - 2;
 	printf("finished execute %lf s!\n", result / (times * 1.0));
