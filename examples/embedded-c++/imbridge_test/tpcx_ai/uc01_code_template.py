@@ -18,12 +18,7 @@ class MyProcess:
 
     def process(self, table):
         # print(table.num_rows)
-        data = table.to_pandas().values
-        data = np.split(data, np.array([2]), axis=1)
-        feat = pd.DataFrame({
-            'return_ratio': data[0],
-            'frequency': data[1]
-        })
-        res = self.model.predict(feat)
+        data = table.to_pandas()
+        res = self.model.predict(data)
         df = pd.DataFrame(res)
         return pa.Table.from_pandas(df)

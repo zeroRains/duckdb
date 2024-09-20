@@ -35,13 +35,13 @@ con = duckdb.connect(
 
 sql1='''
 select amount_norm, business_hour_norm
-from pf10_used_data;
+from uc10_used_data;
 '''
 
 
 sql2='''
 explain analyze select amount_norm, business_hour_norm
-from pf10_used_data;
+from uc10_used_data;
 '''
 
 if sys.argv[1] == "udf":

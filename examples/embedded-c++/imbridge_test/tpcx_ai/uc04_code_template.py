@@ -16,11 +16,8 @@ class MyProcess:
         self.model = joblib.load(model_file_name)
 
     def process(self, table):
-        def udf(txt):
-            data = pd.DataFrame({
-                "text": txt
-            })
-            # print(data.shape)
-            return self.model.predict(data["text"])
-        df = pd.DataFrame(udf(*table))
+        data = table.to_pandas()
+        # print(data.shape)
+        res  = self.model.predict(data["text"])
+        df = pd.DataFrame(res)
         return pa.Table.from_pandas(df)

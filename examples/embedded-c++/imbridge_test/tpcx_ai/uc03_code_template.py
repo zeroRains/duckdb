@@ -54,34 +54,28 @@ class MyProcess:
 
     def process(self, table):
         # print(table.num_rows)
-        def udf(store, department):
-            forecasts = []
-            data = pd.DataFrame({
-                'store': store,
-                'department': department
-            })
-            # print(data.shape)
-            # combinations = np.unique(data[['Store', 'Dept']].values, axis=0)
-            for index, row in data.iterrows():
-                store = row.store
-                dept = row.department
-                periods = 52
-                try:
-                    current_model, ts_min, ts_max = self.model.get_model(store, dept)
-                except KeyError:
-                    continue
-                # disable warnings that non-date index is returned from forecast
-                with warnings.catch_warnings():
-                    warnings.filterwarnings("ignore", category=ValueWarning)
-                    forecast = current_model.forecast(periods)
-                    forecast = np.clip(forecast, a_min=0.0, a_max=None)  # replace negative forecasts
-                start = pd.date_range(ts_max, periods=2)[1]
-                forecast_idx = pd.date_range(start, periods=periods, freq='W-FRI')
-                forecasts.append(
-                    str({'store': store, 'department': dept, 'date': forecast_idx, 'weekly_sales': forecast})
-                )
-
-            return np.array(forecasts)
-
-        df = pd.DataFrame(udf(*table))
+        forecasts = []
+        data = table.to_pandas()
+        # print(data.shape)
+        # combinations = np.unique(data[['Store', 'Dept']].values, axis=0)
+        for index, row in data.iterrows():
+            store = row.store
+            dept = row.department
+            periods = 52
+            try:
+                current_model, ts_min, ts_max = self.model.get_model(store, dept)
+            except KeyError:
+                continue
+            # disable warnings that non-date index is returned from forecast
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=ValueWarning)
+                forecast = current_model.forecast(periods)
+                forecast = np.clip(forecast, a_min=0.0, a_max=None)  # replace negative forecasts
+            start = pd.date_range(ts_max, periods=2)[1]
+            forecast_idx = pd.date_range(start, periods=periods, freq='W-FRI')
+            forecasts.append(
+                str({'store': store, 'department': dept, 'date': forecast_idx, 'weekly_sales': forecast})
+            )
+        res =  np.array(forecasts)
+        df = pd.DataFrame(res)
         return pa.Table.from_pandas(df)

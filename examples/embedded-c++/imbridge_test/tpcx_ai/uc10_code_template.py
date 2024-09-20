@@ -18,13 +18,8 @@ class MyProcess:
         self.model = joblib.load(model_file_name)
 
     def process(self, table):
-        def udf(business_hour_norm, amount_norm):
-            data = pd.DataFrame({
-                'business_hour_norm': business_hour_norm,
-                'amount_norm': amount_norm
-            })
-            # print(data.shape)
-            return self.model.predict(data)
-
-        df = pd.DataFrame(udf(*table))
+        data = table.to_pandas()
+        # print(data.shape)
+        res =  self.model.predict(data)
+        df = pd.DataFrame(res)
         return pa.Table.from_pandas(df)

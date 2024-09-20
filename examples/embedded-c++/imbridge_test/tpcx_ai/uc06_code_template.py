@@ -21,6 +21,6 @@ class MyProcess:
 
 
     def process(self, table):
-        res = self.model.predict(table.to_pandas().values)
+        res = self.model.predict(table.to_pandas())
         df = pd.DataFrame(res)
         return pa.Table.from_pandas(df)
