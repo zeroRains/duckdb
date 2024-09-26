@@ -172,11 +172,12 @@ join Product on li_product_id = Product.p_product_id
 	bool flag = true;
 	for (int i = 0; i < times; i++) {
 		printf("step times %d \n", i);
-		clock_t start_time = clock();
+		auto start_time = std::chrono::high_resolution_clock::now();
 		con.Query(sql);
-		clock_t end_time = clock();
-		double t = (double)(end_time - start_time) / CLOCKS_PER_SEC;
-		printf("t%d :  %lf s!\n", i, t);
+		auto end_time = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
+		double t = duration / 1e6;
+		printf("%d : %lf\n", i+1, t);
 		result += t;
 		if (flag) {
 			flag = false;

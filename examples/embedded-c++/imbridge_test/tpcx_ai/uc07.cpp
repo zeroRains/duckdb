@@ -36,11 +36,12 @@ explain analyze select userID, productID, r, score  from (select userID, product
 	double min1, max1;
 	bool flag = true;
 	for (int i = 0; i < times; i++) {
-		clock_t start_time = clock();
+		auto start_time = std::chrono::high_resolution_clock::now();
 		con.Query(sql);
-		clock_t end_time = clock();
-		double t = (double)(end_time - start_time) / CLOCKS_PER_SEC;
-		printf("%d : %lf\n", i + 1, t);
+		auto end_time = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
+		double t = duration / 1e6;
+		printf("%d : %lf\n", i+1, t);
 		result += t;
 		if (flag) {
 			flag = false;

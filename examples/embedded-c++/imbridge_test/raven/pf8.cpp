@@ -40,10 +40,12 @@ Explain analyze SELECT Time, Amount, udf(V1, V2, V3, V4, V5, V6, V7, V8, V9, V10
 	double min1, max1;
 	bool flag = true;
 	for (int i = 0; i < times; i++) {
-		clock_t start_time = clock();
+		auto start_time = std::chrono::high_resolution_clock::now();
 		con.Query(sql);
-		clock_t end_time = clock();
-		double t = (double)(end_time - start_time) / CLOCKS_PER_SEC;
+		auto end_time = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
+		double t = duration / 1e6;
+		printf("%d : %lf\n", i+1, t);
 		result += t;
 		if (flag) {
 			flag = false;
@@ -54,6 +56,8 @@ Explain analyze SELECT Time, Amount, udf(V1, V2, V3, V4, V5, V6, V7, V8, V9, V10
 			max1 = std::max(max1, t);
 		}
 	}
+	printf("min : %lf\n", min1);
+	printf("max : %lf\n", max1);
 	result = result - min1 - max1;
 	times = times - 2;
 	printf("finished execute %lf s!\n", result / (times * 1.0));

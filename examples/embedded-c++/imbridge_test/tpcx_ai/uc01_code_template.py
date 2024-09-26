@@ -7,21 +7,27 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
 
 
+def process_table(table):
+    scale = 10
+    name = "uc01"
+    root_model_path = f"/root/workspace/duckdb/examples/embedded-c++/imbridge_test/data/tpcxai_datasets/sf{scale}"
+    model_file_name = f"{root_model_path}/model/{name}/{name}.python.model"
+    model = joblib.load(model_file_name)
+    data = table.to_pandas().values
+    feat = pd.DataFrame({
+        'return_ratio': data[:, 0],
+        'frequency': data[:, 1]
+    })
+    res = model.predict(feat)
+    df = pd.DataFrame(res)
+    # print(len(df))
+    return pa.Table.from_pandas(df)
+
 class MyProcess:
     def __init__(self):
         # load model part
-        scale = 10
-        name = "uc01"
-        root_model_path = f"/root/workspace/duckdb/examples/embedded-c++/imbridge_test/data/tpcxai_datasets/sf{scale}"
-        model_file_name = f"{root_model_path}/model/{name}/{name}.python.model"
-        self.model = joblib.load(model_file_name)
+        pass
 
     def process(self, table):
-        data = table.to_pandas().values
-        feat = pd.DataFrame({
-            'return_ratio': data[:, 0],
-            'frequency': data[:, 1]
-        })
-        res = self.model.predict(feat)
-        df = pd.DataFrame(res)
-        return pa.Table.from_pandas(df)
+        # print(table.num_rows)
+        return process_table(table)
