@@ -87,9 +87,9 @@ and srch_booking_window > 10 and srch_length_of_stay > 1;
 """
 
 
-s = time.time()
+s = time.perf_counter()
 con.sql(sql1).collect()
-e = time.time()
+e = time.perf_counter()
 print(e-s)
 
 

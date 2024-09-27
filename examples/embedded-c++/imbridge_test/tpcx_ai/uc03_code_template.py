@@ -75,7 +75,7 @@ def process_table(table):
             )
         return np.array(forecasts)
     df = pd.DataFrame(udf(*table))
-    print(len(df))
+    # print(len(df))
     return pa.Table.from_pandas(df)
 
 class MyProcess:
