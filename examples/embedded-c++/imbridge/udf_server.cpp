@@ -47,6 +47,10 @@ int main(int argc, char **argv) {
 	PyObject *main_dict = PyModule_GetDict(main_module);
 	PyObject *MyProcess = PyDict_GetItemString(main_dict, "MyProcess");
 	PyObject *my_process_instance = PyObject_CallObject(MyProcess, NULL);
+	if(my_process_instance == NULL) {
+		PyErr_Print();
+		return 0;
+	}
 
 	while (true) {
 		shm_server.sem_server->wait();
@@ -60,6 +64,9 @@ int main(int argc, char **argv) {
 
 		if (py_result != NULL) {
 			my_table = arrow::py::unwrap_table(py_result).ValueOrDie();
+		}else{
+			PyErr_Print();
+			return 0;
 		}
 
 		imbridge::WriteArrowTableToSharedMemory(my_table, shm_server, OUTPUT_TABLE);

@@ -3,11 +3,18 @@ import numpy as np
 import pandas as pd
 import onnxruntime as ort
 
+from threadpoolctl import threadpool_limits
 
+limits_threads = 0
+with open("/root/workspace/duckdb/.vscode/experiment_cfg/ml_thread.cfg", "r") as f:
+    limits_threads = int(f.readline().strip())
+
+
+@threadpool_limits.wrap(limits=limits_threads)
 def process_table(table):
     root_model_path = "/root/workspace/duckdb/examples/embedded-c++/imbridge_test/data/test_raven"
     onnx_path = f'{root_model_path}/Hospital/hospital_mlp_pipeline.onnx'
-    core = 0
+    core = limits_threads
     ortconfig = ort.SessionOptions()
     ortconfig.inter_op_num_threads = core
     ortconfig.intra_op_num_threads = core

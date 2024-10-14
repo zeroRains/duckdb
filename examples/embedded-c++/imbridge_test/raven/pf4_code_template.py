@@ -29,7 +29,7 @@ def process_table(table):
         outputs = flights_onnx_session.run([flights_label.name], infer_batch)
         return outputs[0]
     df = pd.DataFrame(udf_wrap(*table))
-    print(len(df))
+    # print(len(df))
     return pa.Table.from_pandas(df)
         
 

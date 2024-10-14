@@ -25,6 +25,7 @@ def process_table(table):
                    categorical))
     res = model.predict(X)
     df = pd.DataFrame(res)
+    # print(len(df))
     return pa.Table.from_pandas(df)
     
 

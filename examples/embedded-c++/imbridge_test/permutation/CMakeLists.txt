@@ -1,0 +1,10 @@
+
+
+add_executable(permutation_pf3 pf3.cpp)
+target_link_libraries(pf3 duckdb)
+
+add_executable(permutation_pf5 pf5.cpp)
+target_link_libraries(pf5 duckdb)
+
+add_executable(permutation_pf6 pf6.cpp)
+target_link_libraries(pf6 duckdb)
