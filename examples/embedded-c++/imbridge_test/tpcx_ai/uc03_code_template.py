@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from statsmodels.tools.sm_exceptions import ValueWarning
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
+from threadpoolctl import threadpool_limits
 
 class UseCase03Model(object):
     def __init__(self, use_store=False, use_department=True):
@@ -40,8 +41,9 @@ class UseCase03Model(object):
         ts_max = self._max[key]
         return model, ts_min, ts_max
 
+@threadpool_limits.wrap(limits=1)
 def process_table(table):
-    scale = 10
+    scale = 60
     name = "uc03"
     root_model_path = f"/root/workspace/duckdb/examples/embedded-c++/imbridge_test/data/tpcxai_datasets/sf{scale}"
     model_file_name = f"{root_model_path}/model/{name}/{name}.python.model"

@@ -6,9 +6,10 @@ from sklearn import feature_extraction, naive_bayes
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfTransformer
 
-
+from threadpoolctl import threadpool_limits
+@threadpool_limits.wrap(limits=1)
 def process_table(table):
-    scale = 10
+    scale = 60
     name = "uc04"
     root_model_path = f"/root/workspace/duckdb/examples/embedded-c++/imbridge_test/data/tpcxai_datasets/sf{scale}"
     model_file_name = f"{root_model_path}/model/{name}/{name}.python.model"

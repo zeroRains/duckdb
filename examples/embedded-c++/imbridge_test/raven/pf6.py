@@ -8,6 +8,7 @@ import time
 import onnxruntime as ort
 import time
 from tqdm import tqdm
+import sys
 # hand_type = "udf"
 hand_type = "special"
 name = "pf6"
@@ -20,7 +21,19 @@ root_model_path = "/root/workspace/duckdb/examples/embedded-c++/imbridge_test/da
 
 onnx_path = f'{root_model_path}/Hospital/hospital_mlp_pipeline.onnx'
 ortconfig = ort.SessionOptions()
+if len(sys.argv) > 1:
+    # 如果您想限制ONNX Runtime使用的线程数，可以设置以下选项
+    # 这里的值设置为1，表示单线程运行，根据您的需求调整
+    # print(sys.argv[1])
+    ortconfig.inter_op_num_threads = int(sys.argv[1])
+    ortconfig.intra_op_num_threads = int(sys.argv[1])
+    # ortconfig.config.set_thread_pool_size(0)
+    # # 如果您想避免设置线程亲和性，您可以尝试以下设置
+    # ortconfig.use_default_allocator = True
+    # ortconfig.enable_cpu_mem_arena = False
 hospital_onnx_session = ort.InferenceSession(onnx_path, sess_options=ortconfig)
+# print(hospital_onnx_session._sess_options.inter_op_num_threads)
+# print(hospital_onnx_session._sess_options.intra_op_num_threads)
 hospital_label = hospital_onnx_session.get_outputs()[0]
 numerical_columns = ['hematocrit', 'neutrophils', 'sodium', 'glucose', 'bloodureanitro', 'creatinine', 'bmi', 'pulse',
                      'respiration', 'secondarydiagnosisnonicd9']

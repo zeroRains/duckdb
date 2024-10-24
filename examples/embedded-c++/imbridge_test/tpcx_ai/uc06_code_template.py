@@ -10,7 +10,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
 
-
 def process_table(table):
     scale = 10
     name = "uc06"

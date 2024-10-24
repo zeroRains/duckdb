@@ -2,9 +2,9 @@
 #include "duckdb.hpp"
 
 #include <chrono>
+#include <fstream>
 #include <iostream>
 #include <sstream>
-#include <fstream>
 #include <string>
 #include <thread>
 
@@ -24,7 +24,7 @@ static void udf_tmp(DataChunk &input, ExpressionState &state, Vector &result) {
 	}
 }
 
-void bs_process(Connection &con, int dbt, int mlt, int max_bs = 6200, int now_bs = 256, int base_bs = 256) {
+void bs_process(Connection &con, int dbt, int mlt, int max_bs = 6200, int now_bs = 256, int base_bs = 768) {
 	while (max_bs > now_bs) {
 		std::stringstream ss;
 		ss << "udf" << now_bs;
@@ -75,38 +75,34 @@ where slatitude > 26 and dlatitude > 30 and slatitude < 40 and dlatitude < 40
 	}
 }
 
-int main() {
-	// set sys threads
-	int threads;
-	std::ifstream file1("/root/workspace/duckdb/.vscode/experiment_cfg/sys_thread.cfg");
-	if (file1.is_open()) {
-		file1 >> threads;
-		file1.close();
+int main(int argc, char **argv) {
+	if (argc < 3) {
+		std::cout << "[Server] you shoule add two parameter\n";
+		return 0;
+	}
+	std::string db_threads = argv[1];
+	std::string ml_threads = argv[2];
+	int now_bs = argc > 3 ? std::stoi(argv[3]) : 256;
+	int max_bs = argc > 4 ? std::stoi(argv[4]) : 6200;
+	int base_bs = argc > 5 ? std::stoi(argv[5]) : 768;
+	
+	// set ml threads
+	std::ofstream file("/root/workspace/duckdb/.vscode/experiment_cfg/ml_thread.cfg");
+	if (file.is_open()) {
+		file << ml_threads;
+		file.close();
 	} else {
 		std::cout << "count not open ml file!" << std::endl;
 		exit(0);
 	}
-
-	for (int i = 1; i <= threads; i++) {
-		// set ml threads
-		std::ofstream file("/root/workspace/duckdb/.vscode/experiment_cfg/ml_thread.cfg");
-		if (file.is_open()) {
-			file << i;
-			file.close();
-		} else {
-			std::cout << "count not open ml file!" << std::endl;
-			exit(0);
-		}
-		DuckDB db("/root/workspace/duckdb/examples/embedded-c++/imbridge_test/db/db_raven_10G.db");
-		Connection con(db);
-		for (int j = 1; j <= threads; j++) {
-			std::stringstream ss;
-			// set db threads
-			ss << "SET threads TO " << j << ";";
-			con.Query(ss.str());
-			// set udf
-			bs_process(con, j, i);
-		}
-	}	
+	// std::cout << "ml threads: " << ml_threads << std::endl;
+	DuckDB db("/root/workspace/duckdb/examples/embedded-c++/imbridge_test/db/db_raven_10G.db");
+	Connection con(db);
+	std::stringstream ss;
+	// set db threads
+	ss << "SET threads TO " << db_threads << ";";
+	con.Query(ss.str());
+	// set udf
+	bs_process(con, std::stoi(db_threads), std::stoi(ml_threads), max_bs, now_bs, base_bs);
 	return 0;
 }

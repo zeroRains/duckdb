@@ -2,7 +2,6 @@ import pyarrow as pa
 import numpy as np
 import pandas as pd
 import onnxruntime as ort
-
 from threadpoolctl import threadpool_limits
 
 limits_threads = 0
@@ -17,7 +16,7 @@ def process_table(table):
     core = limits_threads
     ortconfig = ort.SessionOptions()
     ortconfig.inter_op_num_threads = core
-    ortconfig.intra_op_num_threads = core
+    ortconfig.intra_op_num_threads = 1
     hospital_onnx_session = ort.InferenceSession(onnx_path, sess_options=ortconfig)
     hospital_label = hospital_onnx_session.get_outputs()[0]
     numerical_columns = ['hematocrit', 'neutrophils', 'sodium', 'glucose', 'bloodureanitro', 'creatinine', 'bmi', 'pulse',

@@ -3,10 +3,9 @@
 
 #include <chrono>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <thread>
-#include <sstream>
-#include <fstream>
 
 using namespace duckdb;
 using namespace imbridge;
@@ -29,21 +28,20 @@ void bs_process(Connection &con, int dbt, int mlt, int max_bs = 6200, int now_bs
 		std::stringstream ss;
 		ss << "udf" << now_bs;
 		std::string udf_name = ss.str();
-		con.CreateVectorizedFunction<int64_t, double, double, double, double, double, double, double, int64_t, double,
-		                             int64_t, string_t, string_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t,
-		                             int64_t, int64_t, int64_t, int64_t, int64_t>(
-		    udf_name, &udf_tmp, LogicalType::INVALID, FunctionKind::PREDICTION, now_bs);
+		con.CreateVectorizedFunction<int64_t, double, double, double, double, int64_t, string_t, string_t, string_t,
+	                             string_t, string_t, string_t, int64_t, string_t, string_t, string_t, int64_t,
+	                             string_t>(udf_name, &udf_tmp, LogicalType::INVALID, FunctionKind::PREDICTION, 4096);
 
 		ss.str("");
 		ss.clear();
 		ss << R"(
-Explain analyze SELECT eid, )"
-		   << udf_name << R"((hematocrit, neutrophils, sodium, glucose, bloodureanitro, creatinine, bmi, pulse,
- respiration, secondarydiagnosisnonicd9, rcount, gender, cast(dialysisrenalendstage as INTEGER), cast(asthma as INTEGER),
-  cast(irondef as INTEGER), cast(pneum as INTEGER), cast(substancedependence as INTEGER),
-   cast(psychologicaldisordermajor as INTEGER), cast(depress as INTEGER), cast(psychother as INTEGER),
-    cast(fibrosisandother as INTEGER), cast(malnutrition as INTEGER), cast(hemo as INTEGER)) AS lengthofstay
-   FROM LengthOfStay_extension WHERE hematocrit > 10 AND neutrophils > 10 AND bloodureanitro < 20 AND pulse < 70;
+Explain analyze SELECT Flights_S_routes_extension.airlineid, Flights_S_routes_extension.sairportid, Flights_S_routes_extension.dairportid,)"
+		   << udf_name << R"((slatitude, slongitude, dlatitude, dlongitude, name1, name2, name4, acountry, active, 
+                        scity, scountry, stimezone, sdst, dcity, dcountry, dtimezone, ddst) AS codeshare 
+                        FROM Flights_S_routes_extension JOIN Flights_R1_airlines ON Flights_S_routes_extension.airlineid = Flights_R1_airlines.airlineid 
+                        JOIN Flights_R2_sairports ON Flights_S_routes_extension.sairportid = Flights_R2_sairports.sairportid JOIN Flights_R3_dairports 
+                        ON Flights_S_routes_extension.dairportid = Flights_R3_dairports.dairportid
+where slatitude > 26 and dlatitude > 30 and slatitude < 40 and dlatitude < 40
 )";
 		int times = 5;
 		double result = 0;
@@ -75,6 +73,7 @@ Explain analyze SELECT eid, )"
 		now_bs += base_bs;
 	}
 }
+
 
 int main(int argc, char **argv) {
 	if (argc < 3) {

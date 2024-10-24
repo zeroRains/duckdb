@@ -3,13 +3,14 @@ import numpy as np
 import pandas as pd
 import onnxruntime as ort
 
-
+from threadpoolctl import threadpool_limits
+@threadpool_limits.wrap(limits=16)
 def process_table(table):
     root_model_path = "/root/workspace/duckdb/examples/embedded-c++/imbridge_test/data/test_raven"
     onnx_path = f'{root_model_path}/Hospital/hospital_mlp_pipeline.onnx'
-    core = 0
+    core = 16
     ortconfig = ort.SessionOptions()
-    ortconfig.inter_op_num_threads = core
+    ortconfig.inter_op_num_threads = 1
     ortconfig.intra_op_num_threads = core
     hospital_onnx_session = ort.InferenceSession(onnx_path, sess_options=ortconfig)
     hospital_label = hospital_onnx_session.get_outputs()[0]
