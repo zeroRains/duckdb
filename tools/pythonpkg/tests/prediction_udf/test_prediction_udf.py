@@ -12,11 +12,15 @@ def udf(a, b):
     return a
 
 con = duckdb.connect(":memory:")
+con.sql("SET threads TO 1;")
+import time
+time.sleep(3)
 con.create_function("udf", udf,
             [DOUBLE, DOUBLE], DOUBLE, type="arrow", kind=duckdb.functional.PREDICTION, batch_size=4444)
 
 print(duckdb.functional.PREDICTION)
 print(duckdb.functional.COMMON)
+
 
 con.sql("create table t1(a double, b double);")
 for i in range(4050):
@@ -27,13 +31,13 @@ con.sql("insert into t2 values (2.0, 3.0), (4.0, 7.0);")
 con.table("t1").show()
 
 def project_test():
-    res = con.sql('''
-    explain SELECT udf(a,b), a, b FROM t1;
-    ''').fetchall()
+    # res = con.sql('''
+    # explain SELECT udf(a,b), a, b FROM t1;
+    # ''').fetchall()
 
-    for elem in res[0]:
-         print(elem)
-
+    # for elem in res[0]:
+    #      print(elem)
+    print("______________________________________________")
     res = con.sql('''
     SELECT udf(a,b), a, b FROM t1;
     ''').show()
