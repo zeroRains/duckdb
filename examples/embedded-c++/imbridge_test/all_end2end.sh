@@ -77,7 +77,7 @@ file_tpcx_ai_path="$root_path/tpcx_ai"
 # echo "uc10"
 # $python_exe $file_tpcx_ai_path/uc10_infer.py
 
-echo "____________________________IMLane(scheduler ml = 1)___________________________________"
+echo "____________________________IMLane(scheduler ml = 1 , batch , async, 60%)___________________________________"
 
 echo "pf1"
 $base_sh pf 1
@@ -97,17 +97,17 @@ echo "pf8"
 $base_sh pf 8
 
 
-echo "uc01"
-$base_sh uc 01
-# echo "uc03"
-# $base_sh uc 03
-echo "uc04"
-$base_sh uc 04
-echo "uc07"
-$base_sh uc 07
-# echo "uc08"
-# $base_sh uc 08
-echo "uc10"
-$base_sh uc 10
-echo "uc06"
-$base_sh uc 06
+# echo "uc01"
+# $base_sh uc 01
+# # echo "uc03"
+# # $base_sh uc 03
+# echo "uc04"
+# $base_sh uc 04
+# echo "uc07"
+# $base_sh uc 07
+# # echo "uc08"
+# # $base_sh uc 08
+# echo "uc10"
+# $base_sh uc 10
+# echo "uc06"
+# $base_sh uc 06

@@ -28,12 +28,12 @@ int main() {
 	con.CreateVectorizedFunction<int64_t, double, double, double, double, double, double, double, double, double,
 	                             double, double, double, double, double, double, double, double, double, double, double,
 	                             double, double, double, double, double, double, double, double, double>(
-	    "udf", &udf_tmp, LogicalType::INVALID, FunctionKind::SCHEDULE_PREDICTION, 4096);
+	    "udf", &udf_tmp, LogicalType::INVALID, FunctionKind::ASYNC_BATCH_PREDICTION, 4096);
 
 	string sql = R"(
 Explain analyze SELECT Time, Amount, udf(V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15,
  V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, Amount) AS Class FROM Credit_Card_extension 
- WHERE V1 > 1 AND V2 < 0.27 AND V3 > 0.3;
+WHERE V1 < 1.05;
 )";
 	int times = 5;
 	double result = 0;

@@ -32,7 +32,7 @@ int main() {
 	con.CreateVectorizedFunction<int64_t, double, double, double, double, double, double, double, int64_t, double,
 	                             int64_t, string_t, string_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t,
 	                             int64_t, int64_t, int64_t, int64_t, int64_t>("udf", &udf_tmp, LogicalType::INVALID,
-	                                                                          FunctionKind::SCHEDULE_PREDICTION, 4096);
+	                                                                          FunctionKind::ASYNC_BATCH_PREDICTION, 4096);
 
 		string sql = R"(
 	Explain analyze SELECT eid, udf(hematocrit, neutrophils, sodium, glucose, bloodureanitro, creatinine, bmi, pulse,
@@ -41,7 +41,7 @@ int main() {
 	  cast(irondef as INTEGER), cast(pneum as INTEGER), cast(substancedependence as INTEGER),
 	   cast(psychologicaldisordermajor as INTEGER), cast(depress as INTEGER), cast(psychother as INTEGER),
 	    cast(fibrosisandother as INTEGER), cast(malnutrition as INTEGER), cast(hemo as INTEGER)) AS lengthofstay
-	   FROM LengthOfStay_extension WHERE hematocrit > 10 AND neutrophils > 10 AND bloodureanitro < 20 AND pulse < 70;
+	   FROM LengthOfStay_extension WHERE bloodureanitro < 20  and  hematocrit > 11.6;
 	)";
 		int times = 5;
 		double result = 0;
