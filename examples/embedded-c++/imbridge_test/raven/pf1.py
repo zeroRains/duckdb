@@ -3,6 +3,7 @@ import pickle
 import duckdb
 import numpy as np
 from duckdb.typing import BIGINT, DOUBLE, FLOAT, VARCHAR, BOOLEAN
+from duckdb.functional import PythonUDFKind
 import pandas as pd
 import time
 from sklearn.preprocessing import OneHotEncoder
@@ -13,11 +14,12 @@ from tqdm import tqdm
 hand_type = "special"
 name = "pf1"
 
+kind = PythonUDFKind.HYBIRD_PREDICTION
 
 con = duckdb.connect(
-    "/root/workspace/duckdb/examples/embedded-c++/imbridge_test/db/db_raven_10G.db")
+    "/home/duckdb/examples/embedded-c++/imbridge_test/data/db/db_raven_10G.db")
 
-root_model_path = "/root/workspace/duckdb/examples/embedded-c++/imbridge_test/data/test_raven"
+root_model_path = "/home/duckdb/examples/embedded-c++/imbridge_test/data/data/test_raven"
 scaler_path = f'{root_model_path}/Expedia/expedia_standard_scale_model.pkl'
 enc_path = f'{root_model_path}/Expedia/expedia_one_hot_encoder.pkl'
 model_path = f'{root_model_path}/Expedia/expedia_dt_model.pkl'
@@ -52,7 +54,7 @@ def udf(prop_location_score1, prop_location_score2, prop_log_historical_price, p
 
 
 con.create_function("udf", udf,
-                    [DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, VARCHAR, VARCHAR, BIGINT, BOOLEAN, BIGINT, BIGINT, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, BIGINT, BIGINT, BIGINT, BIGINT, BIGINT, BOOLEAN, BOOLEAN], BIGINT, type="arrow", null_handling=hand_type)
+                    [DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, VARCHAR, VARCHAR, BIGINT, BOOLEAN, BIGINT, BIGINT, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, BIGINT, BIGINT, BIGINT, BIGINT, BIGINT, BOOLEAN, BOOLEAN], BIGINT, type="arrow", null_handling=hand_type, kind=kind)
 
 
 sql = '''

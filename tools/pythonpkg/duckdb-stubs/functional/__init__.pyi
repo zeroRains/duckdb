@@ -10,6 +10,9 @@ ARROW: PythonUDFType
 
 COMMON: PythonUDFKind
 PREDICTION: PythonUDFKind
+BATCH_PREDICTION: PythonUDFKind
+HYBIRD_PREDICTION: PythonUDFKind
+
 
 class FunctionNullHandling:
     DEFAULT: FunctionNullHandling
@@ -39,6 +42,8 @@ class PythonUDFType:
 class PythonUDFKind:
     COMMON: PythonUDFKind
     PREDICTION: PythonUDFKind
+    BATCH_PREDICTION: PythonUDFKind
+    HYBIRD_PREDICTION: PythonUDFKind
     def __int__(self) -> int: ...
     def __index__(self) -> int: ...
     @property

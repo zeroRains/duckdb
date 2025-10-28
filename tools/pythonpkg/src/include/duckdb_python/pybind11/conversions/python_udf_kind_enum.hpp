@@ -9,5 +9,5 @@ using duckdb::string;
 using duckdb::StringUtil;
 
 namespace duckdb {
-enum class PythonUDFKind: uint8_t {COMMON = 0, PREDICTION = 1};
+enum class PythonUDFKind: uint8_t {COMMON = 0, PREDICTION=1, BATCH_PREDICTION=2, HYBIRD_PREDICTION=3};
 }

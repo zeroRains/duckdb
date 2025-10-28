@@ -6,8 +6,10 @@ from duckdb.duckdb.functional import (
 	DEFAULT,
 	NATIVE,
 	ARROW,
-    COMMON,
-    PREDICTION
+	COMMON,
+	PREDICTION,
+	BATCH_PREDICTION,
+	HYBIRD_PREDICTION,
 )
 
 __all__ = [
@@ -19,5 +21,7 @@ __all__ = [
 	"NATIVE",
 	"ARROW",
     "COMMON",
-    "PREDICTION"
+	"PREDICTION",
+	"BATCH_PREDICTION",
+	"HYBIRD_PREDICTION",
 ]
